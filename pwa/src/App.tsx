@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { FirebaseContextProvider } from './contexts/FirebaseContext';
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { FirebaseProvider } from './contexts/FirebaseContext';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Login from './components/Auth/Login';
@@ -11,17 +11,17 @@ import './styles/App.css';
 
 const App = () => {
   return (
-    <FirebaseContextProvider>
+    <FirebaseProvider>
       <Router>
         <Switch>
-          <Route path="/" exact component={Home} />
+          <Route exact path="/" component={Home} />
           <Route path="/profile" component={Profile} />
           <Route path="/login" component={Login} />
           <Route path="/data" component={DataList} />
           <Route path="/upload" component={FileUpload} />
         </Switch>
       </Router>
-    </FirebaseContextProvider>
+    </FirebaseProvider>
   );
 };
 
