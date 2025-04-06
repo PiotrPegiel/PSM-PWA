@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { useFirestore } from '../../hooks/useFirestore';
+import useFirestore from '../../hooks/useFirestore';
 
 const DataList: React.FC = () => {
-    const { getData } = useFirestore();
+    const { documents } = useFirestore('collectionName');
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchData = async () => {
-            const result = await getData();
-            setData(result);
+            setData(documents);
             setLoading(false);
         };
 
         fetchData();
-    }, [getData]);
+    }, [setData]);
 
     if (loading) {
         return <div>Loading...</div>;

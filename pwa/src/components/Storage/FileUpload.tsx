@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStorage } from '../../hooks/useStorage';
+import useStorage from '../../hooks/useStorage';
 
 const FileUpload: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);

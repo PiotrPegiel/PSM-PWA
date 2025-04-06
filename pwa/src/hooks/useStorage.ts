@@ -1,21 +1,22 @@
 import { useState } from 'react';
 import { storage } from '../firebase-config'; // Adjust the import based on your firebase-config file
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const useStorage = () => {
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState(null);
-    const [url, setUrl] = useState(null);
+    const [url, setUrl] = useState<string | null>(null);
 
-    const uploadFile = (file) => {
+    const uploadFile = (file:any) => {
         const storageRef = ref(storage, file.name);
         
-        uploadBytes(storageRef, file).on('state_changed', 
-            (snap) => {
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        uploadTask.on('state_changed', 
+            (snap:any) => {
                 const percentage = (snap.bytesTransferred / snap.totalBytes) * 100;
                 setProgress(percentage);
             }, 
-            (err) => {
+            (err:any) => {
                 setError(err);
             }, 
             async () => {

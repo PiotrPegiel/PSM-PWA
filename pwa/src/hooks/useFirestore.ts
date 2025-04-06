@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { db } from '../firebase-config'; // Adjust the import based on your firebase-config file
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 
-const useFirestore = (collectionName) => {
-    const [documents, setDocuments] = useState([]);
-    const [error, setError] = useState(null);
+const useFirestore = (collectionName: string) => {
+    const [documents, setDocuments] = useState<{ id: string; [key: string]: any }[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDocuments = async () => {
@@ -13,26 +13,26 @@ const useFirestore = (collectionName) => {
                 const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setDocuments(docs);
             } catch (err) {
-                setError(err.message);
+                setError((err as Error).message);
             }
         };
 
         fetchDocuments();
     }, [collectionName]);
 
-    const addDocument = async (data) => {
+    const addDocument = async (data: { [key: string]: any }) => {
         try {
             await addDoc(collection(db, collectionName), data);
         } catch (err) {
-            setError(err.message);
+            setError((err as Error).message);
         }
     };
 
-    const deleteDocument = async (id) => {
+    const deleteDocument = async (id: string) => {
         try {
             await deleteDoc(doc(db, collectionName, id));
         } catch (err) {
-            setError(err.message);
+            setError((err as Error).message);
         }
     };
 

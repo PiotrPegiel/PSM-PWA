@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 
 const Login: React.FC = () => {
     const { signIn } = useAuth();
@@ -12,7 +12,11 @@ const Login: React.FC = () => {
         try {
             await signIn(email, password);
         } catch (err) {
-            setError(err.message);
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unknown error occurred.');
+            }
         }
     };
 

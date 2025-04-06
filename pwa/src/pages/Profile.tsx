@@ -2,7 +2,13 @@ import React, { useContext } from 'react';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 
 const Profile: React.FC = () => {
-    const { currentUser, updateUserProfile } = useContext(FirebaseContext);
+    const firebaseContext = useContext(FirebaseContext);
+
+    if (!firebaseContext) {
+        throw new Error('FirebaseContext is null. Ensure that FirebaseContext.Provider is wrapping your component tree.');
+    }
+
+    const { currentUser, updateUserProfile } = firebaseContext;
     const [displayName, setDisplayName] = React.useState(currentUser?.displayName || '');
 
     const handleSubmit = (e: React.FormEvent) => {

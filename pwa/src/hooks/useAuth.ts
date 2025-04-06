@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { auth } from '../firebase-config';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const useAuth = () => {
     const [user, setUser] = useState<any>(null);
@@ -15,7 +16,7 @@ const useAuth = () => {
     }, []);
 
     const signIn = async (email: string, password: string) => {
-        return await auth.signInWithEmailAndPassword(email, password);
+        return await signInWithEmailAndPassword(auth, email, password);
     };
 
     const signOut = async () => {
