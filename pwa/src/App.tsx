@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import { FirebaseProvider } from './contexts/FirebaseContext';
+import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-dom";
+import { FirebaseProvider, useFirebase } from './contexts/FirebaseContext';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Login from './components/Auth/Login';
@@ -10,13 +10,19 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/App.css';
 
 const App = () => {
+  const { currentUser } = useFirebase() || {};
+
   return (
     <FirebaseProvider>
       <Router>
         <Switch>
-          <Route exact path="/" component={Home} />
+          <Route exact path="/">
+            {currentUser ? <Home /> : <Redirect to="/login" />}
+          </Route>
           <Route path="/profile" component={Profile} />
-          <Route path="/login" component={Login} />
+          <Route path="/login">
+            {currentUser ? <Redirect to="/" /> : <Login />}
+          </Route>
           <Route path="/data" component={DataList} />
           <Route path="/upload" component={FileUpload} />
         </Switch>
