@@ -1,35 +1,38 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-dom";
-import { FirebaseProvider, useFirebase } from './contexts/FirebaseContext';
-import Home from './pages/Home';
-import Profile from './pages/Profile';
-import Login from './components/Auth/Login';
-import DataList from './components/Firestore/DataList';
-import FileUpload from './components/Storage/FileUpload';
-import Register from './components/Auth/Register';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './styles/App.css';
+import Login from "./components/auth/login";
+import Register from "./components/auth/register";
 
-const App = () => {
-  const { currentUser } = useFirebase() || {};
+import Header from "./components/header";
+import Home from "./components/home";
 
+import { AuthProvider } from "./contexts/authContext";
+import { useRoutes } from "react-router-dom";
+
+function App() {
+  const routesArray = [
+    {
+      path: "*",
+      element: <Login />,
+    },
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    {
+      path: "/register",
+      element: <Register />,
+    },
+    {
+      path: "/home",
+      element: <Home />,
+    },
+  ];
+  let routesElement = useRoutes(routesArray);
   return (
-    <FirebaseProvider>
-      <Router>
-        <Switch>
-          <Route exact path="/">
-            {currentUser ? <Home /> : <Redirect to="/login" />}
-          </Route>
-          <Route path="/profile" component={Profile} />
-          <Route path="/home" component={Home} />
-          <Route path="/login" component={Login} />
-          <Route path="/data" component={DataList} />
-          <Route path="/upload" component={FileUpload} />
-          <Route path="/register" component={Register} />
-        </Switch>
-      </Router>
-    </FirebaseProvider>
+    <AuthProvider>
+      <Header />
+      <div className="w-full h-screen flex flex-col">{routesElement}</div>
+    </AuthProvider>
   );
-};
+}
 
 export default App;

@@ -1,18 +1,17 @@
 import React, { useState } from 'react'
-import { Redirect , Link } from 'react-router-dom'
-import { doSignInWithEmailAndPassword, doSignInWithGoogle } from '../../hooks/useAuth'
-import { useAuth } from '../../contexts/AuthContext'
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { Navigate, Link } from 'react-router-dom'
+import { doSignInWithEmailAndPassword, doSignInWithGoogle } from '../../../firebase/auth'
+import { useAuth } from '../../../contexts/authContext'
 
 const Login = () => {
-    const { userLoggedIn } = useAuth()
+    const { userLoggedIn } = useAuth() as { userLoggedIn: boolean }
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [isSigningIn, setIsSigningIn] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
-    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault()
         if(!isSigningIn) {
             setIsSigningIn(true)
@@ -21,7 +20,7 @@ const Login = () => {
         }
     }
 
-    const onGoogleSignIn = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const onGoogleSignIn = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault()
         if (!isSigningIn) {
             setIsSigningIn(true)
@@ -33,7 +32,7 @@ const Login = () => {
 
     return (
         <div>
-            {userLoggedIn && (<Redirect  to={'/home'} replace={true} />)}
+            {userLoggedIn && (<Navigate to={'/home'} replace={true} />)}
 
             <main className="w-full h-screen flex self-center place-content-center place-items-center">
                 <div className="w-96 text-gray-600 space-y-5 p-4 shadow-xl border rounded-xl">

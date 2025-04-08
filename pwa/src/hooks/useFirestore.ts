@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { db } from '../firebase-config'; // Adjust the import based on your firebase-config file
+import { db } from '../firebase/firebase'; // Adjust the import based on your firebase-config file
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 
 const useFirestore = (collectionName: string) => {
