@@ -1,4 +1,4 @@
-import { auth } from "../firebase-config";
+import { auth } from "./firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -29,24 +29,3 @@ export const doSignOut = () => {
   return auth.signOut();
 };
 
-export const doPasswordReset = (email: string) => {
-  return sendPasswordResetEmail(auth, email);
-};
-
-export const doPasswordChange = (password: string) => {
-  if (auth.currentUser) {
-    return updatePassword(auth.currentUser, password);
-  } else {
-    throw new Error("No authenticated user found.");
-  }
-};
-
-export const doSendEmailVerification = () => {
-  if (auth.currentUser) {
-    return sendEmailVerification(auth.currentUser, {
-      url: `${window.location.origin}/home`,
-    });
-  } else {
-    throw new Error("No authenticated user found.");
-  }
-};

@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { Redirect, Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
-import { doCreateUserWithEmailAndPassword } from '../../hooks/useAuth'
+import { Navigate, Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../contexts/authContext'
+import { doCreateUserWithEmailAndPassword } from '../../../firebase/auth'
 
 const Register = () => {
 
+    const navigate = useNavigate()
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -14,7 +15,7 @@ const Register = () => {
 
     const { userLoggedIn } = useAuth()
 
-    const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault()
         if(!isRegistering) {
             setIsRegistering(true)
@@ -24,7 +25,7 @@ const Register = () => {
 
     return (
         <>
-            {userLoggedIn && (<Redirect to={'/home'} replace={true} />)}
+            {userLoggedIn && (<Navigate to={'/home'} replace={true} />)}
 
             <main className="w-full h-screen flex self-center place-content-center place-items-center">
                 <div className="w-96 text-gray-600 space-y-5 p-4 shadow-xl border rounded-xl">

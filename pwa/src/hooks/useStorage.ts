@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { storage } from '../firebase-config'; // Adjust the import based on your firebase-config file
+import { storage } from '../firebase/firebase'; // Adjust the import based on your firebase-config file
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const useStorage = () => {
