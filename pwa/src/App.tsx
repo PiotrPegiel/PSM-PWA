@@ -1,8 +1,10 @@
+import React from "react";
 import Login from "./components/auth/login";
 import Register from "./components/auth/register";
 
 import Header from "./components/header";
 import Home from "./components/home";
+import Upload from "./components/storage";
 
 import { AuthProvider } from "./contexts/authContext";
 import { useRoutes } from "react-router-dom";
@@ -25,6 +27,10 @@ function App() {
       path: "/home",
       element: <Home />,
     },
+    {
+      path: "/upload",
+      element: <Upload />
+    }
   ];
   let routesElement = useRoutes(routesArray);
   return (
