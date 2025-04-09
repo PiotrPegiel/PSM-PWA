@@ -6,9 +6,8 @@ import Header from "./components/header";
 import Home from "./components/home";
 import Upload from "./components/storage";
 
-import { AuthProvider } from "./contexts/authContext";
+import { useAuth } from "./contexts/authContext";
 import { useRoutes } from "react-router-dom";
-import { FirebaseProvider } from "./contexts/FirebaseContext";
 
 function App() {
   const routesArray = [
@@ -20,13 +19,13 @@ function App() {
   ];
   let routesElement = useRoutes(routesArray);
 
+  const { userLoggedIn } = useAuth();
+
   return (
-    <FirebaseProvider>
-      <AuthProvider>
-        <Header />
-        <div className="w-full h-screen flex flex-col">{routesElement}</div>
-      </AuthProvider>
-    </FirebaseProvider>
+    <>
+      {userLoggedIn && <Header />}
+      <div className="w-full h-screen flex flex-col">{routesElement}</div>
+    </>
   );
 }
 
