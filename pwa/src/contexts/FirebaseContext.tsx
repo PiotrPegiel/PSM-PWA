@@ -1,28 +1,20 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { firebaseConfig } from '../firebase/firebase';
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, updateProfile, User } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { auth, firestore, storage } from '../firebase/firebase';
+import { onAuthStateChanged, updateProfile, User } from 'firebase/auth';
 
 interface FirebaseContextType {
     currentUser: User | null;
     updateUserProfile: (data: { displayName: string }) => void;
-    auth: ReturnType<typeof getAuth> | null;
-    firestore: ReturnType<typeof getFirestore> | null;
-    storage: ReturnType<typeof getStorage> | null;
+    firestore: typeof firestore; // Add firestore to the context type
 }
 
 export const FirebaseContext = createContext<FirebaseContextType | null>(null);
 
 export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [auth, setAuth] = useState<ReturnType<typeof getAuth> | null>(null);
-    const [firestore, setFirestore] = useState<ReturnType<typeof getFirestore> | null>(null);
-    const [storage, setStorage] = useState<ReturnType<typeof getStorage> | null>(null);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     const updateUserProfile = (data: { displayName: string }) => {
-        if (auth?.currentUser) {
+        if (auth.currentUser) {
             updateProfile(auth.currentUser, data).then(() => {
                 setCurrentUser((prev) => (prev ? { ...prev, ...data } : null));
             });
@@ -30,16 +22,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     useEffect(() => {
-        const app = initializeApp(firebaseConfig);
-        const authInstance = getAuth(app);
-        const firestoreInstance = getFirestore(app);
-        const storageInstance = getStorage(app);
-
-        setAuth(authInstance);
-        setFirestore(firestoreInstance);
-        setStorage(storageInstance);
-
-        const unsubscribe = onAuthStateChanged(authInstance, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
             setCurrentUser(user);
         });
 
@@ -47,12 +30,16 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, []);
 
     return (
-        <FirebaseContext.Provider value={{ auth, firestore, storage, currentUser, updateUserProfile }}>
+        <FirebaseContext.Provider value={{ currentUser, updateUserProfile, firestore }}>
             {children}
         </FirebaseContext.Provider>
     );
 };
 
 export const useFirebase = () => {
-    return useContext(FirebaseContext);
+    const context = useContext(FirebaseContext);
+    if (!context) {
+        throw new Error('useFirebase must be used within a FirebaseProvider');
+    }
+    return context;
 };

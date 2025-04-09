@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { db } from '../firebase/firebase'; // Adjust the import based on your firebase-config file
+import { firestore } from '../firebase/firebase'; // Adjust the import based on your firebase-config file
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 
 const useFirestore = (collectionName: string) => {
@@ -9,7 +9,7 @@ const useFirestore = (collectionName: string) => {
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
-                const querySnapshot = await getDocs(collection(db, collectionName));
+                const querySnapshot = await getDocs(collection(firestore, collectionName));
                 const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setDocuments(docs);
             } catch (err) {
@@ -22,7 +22,7 @@ const useFirestore = (collectionName: string) => {
 
     const addDocument = async (data: { [key: string]: any }) => {
         try {
-            await addDoc(collection(db, collectionName), data);
+            await addDoc(collection(firestore, collectionName), data);
         } catch (err) {
             setError((err as Error).message);
         }
@@ -30,7 +30,7 @@ const useFirestore = (collectionName: string) => {
 
     const deleteDocument = async (id: string) => {
         try {
-            await deleteDoc(doc(db, collectionName, id));
+            await deleteDoc(doc(firestore, collectionName, id));
         } catch (err) {
             setError((err as Error).message);
         }
