@@ -6,8 +6,10 @@ import Header from "./components/header";
 import Home from "./components/home";
 import Upload from "./components/storage";
 
-import { AuthProvider } from "./contexts/authContext";
+import { useAuth } from "./contexts/authContext";
 import { useRoutes } from "react-router-dom";
+import Reservations from "./components/reservations";
+import path from "path";
 
 function App() {
   const routesArray = [
@@ -29,15 +31,22 @@ function App() {
     },
     {
       path: "/upload",
-      element: <Upload />
+      element: <Upload />,
+    },
+    {
+      path: "/reservations",
+      element: <Reservations />,
     }
   ];
   let routesElement = useRoutes(routesArray);
+
+  const { userLoggedIn } = useAuth();
+
   return (
-    <AuthProvider>
-      <Header />
+    <>
+      {userLoggedIn && <Header />}
       <div className="w-full h-screen flex flex-col">{routesElement}</div>
-    </AuthProvider>
+    </>
   );
 }
 
