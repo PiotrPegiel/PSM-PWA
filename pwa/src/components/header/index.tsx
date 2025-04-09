@@ -34,7 +34,7 @@ const Header = () => {
                                     <Link to='/profile' className='text-sm text-blue-600'>Profile</Link>
                                 </li>
                                 <li className='py-1'>
-                                    <Link to='/history' className='text-sm text-blue-600'>history</Link>
+                                    <Link to='/history' className='text-sm text-blue-600'>History</Link>
                                 </li>
                                 <li className='py-1'>
                                     <button

@@ -8,35 +8,14 @@ import Upload from "./components/storage";
 
 import { useAuth } from "./contexts/authContext";
 import { useRoutes } from "react-router-dom";
-import Reservations from "./components/reservations";
-import path from "path";
 
 function App() {
   const routesArray = [
-    {
-      path: "*",
-      element: <Login />,
-    },
-    {
-      path: "/login",
-      element: <Login />,
-    },
-    {
-      path: "/register",
-      element: <Register />,
-    },
-    {
-      path: "/home",
-      element: <Home />,
-    },
-    {
-      path: "/upload",
-      element: <Upload />,
-    },
-    {
-      path: "/reservations",
-      element: <Reservations />,
-    }
+    { path: "*", element: <Login /> },
+    { path: "/login", element: <Login /> },
+    { path: "/register", element: <Register /> },
+    { path: "/home", element: <Home /> },
+    { path: "/upload", element: <Upload /> },
   ];
   let routesElement = useRoutes(routesArray);
 

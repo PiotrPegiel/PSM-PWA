@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/authContext";
-
+import { FirebaseProvider } from "./contexts/FirebaseContext";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -13,10 +13,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </AuthProvider>
-  </React.StrictMode>,
+    <FirebaseProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AuthProvider>
+    </FirebaseProvider>
+  </React.StrictMode>
 );
