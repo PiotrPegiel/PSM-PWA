@@ -23,29 +23,21 @@ const Header = () => {
                 ☰
             </button>
             {menuOpen && (
-                <div className='absolute top-12 right-0 w-full bg-white shadow-md'>
-                    <ul className='flex flex-col items-start p-2'>
-                        <li className='py-1'>
-                            <Link to='/' className='text-sm text-blue-600'>Home</Link>
+                <div className='absolute top-12 right-0 w-16 bg-white shadow-md h-36 rounded-md'>
+                    <ul className='flex flex-col items-center p-2 right-0' >
+                        <li className='py-1' >
+                            <Link to='/' className='text-sm text-stone-950 no-underline'>Home</Link>
                         </li>
-                        {userLoggedIn && (
-                            <>
-                                <li className='py-1'>
-                                    <Link to='/profile' className='text-sm text-blue-600'>Profile</Link>
-                                </li>
-                                <li className='py-1'>
-                                    <Link to='/history' className='text-sm text-blue-600'>History</Link>
-                                </li>
-                                <li className='py-1'>
-                                    <button
-                                        onClick={handleLogout}
-                                        className='text-sm text-blue-600 underline'
-                                    >
-                                        Logout
-                                    </button>
-                                </li>
-                            </>
-                        )}
+                        <li className='py-1'>
+                            <Link to='/profile' className='text-sm text-stone-950 no-underline'>Profile</Link>
+                        </li>
+                        <li className='py-1'>
+                            <Link to='/history' className='text-sm text-stone-950 no-underline'>History</Link>
+                        </li>
+                        <li className='py-1'>
+                            <button onClick={handleLogout}className='text-sm text-stone-950'>Logout
+                            </button>
+                        </li>  
                     </ul>
                 </div>
             )}
