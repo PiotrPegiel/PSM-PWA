@@ -35,6 +35,9 @@ const Header = () => {
                             <Link to='/history' className='text-sm text-stone-950 no-underline'>History</Link>
                         </li>
                         <li className='py-1'>
+                            <Link to='/categories' className='text-sm text-stone-950 no-underline'>Categories</Link>
+                        </li>
+                        <li className='py-1'>
                             <button onClick={handleLogout}className='text-sm text-stone-950'>Logout
                             </button>
                         </li>  
