@@ -103,7 +103,11 @@ const ProductDetails: React.FC = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files; // Extract files to a variable
         if (files) {
-            setNewPictures((prev) => [...prev, ...Array.from(files)]);
+            const validFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+            if (validFiles.length !== files.length) {
+                alert('Only image files are allowed.');
+            }
+            setNewPictures((prev) => [...prev, ...validFiles]);
             e.target.value = ''; // Clear the upload field
         }
     };
@@ -124,9 +128,11 @@ const ProductDetails: React.FC = () => {
                 context?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
                 canvas.toBlob((blob) => {
-                    if (blob) {
+                    if (blob && blob.type.startsWith('image/')) {
                         const file = new File([blob], `captured-${Date.now()}.jpg`, { type: 'image/jpeg' });
                         setNewPictures((prev) => [...prev, file]);
+                    } else {
+                        alert('Captured file is not a valid image.');
                     }
                 });
 
