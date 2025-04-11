@@ -4,6 +4,7 @@ import Register from "./components/auth/register";
 import Categories from "./components/categories";
 import ProductsByCategory from './components/productsByCategory';
 import ProductDetails from "./components/productDetails";
+import UserRoles from "./components/userRoles";
 
 import Header from "./components/header";
 import Home from "./components/home";
@@ -13,10 +14,12 @@ import { useAuth } from "./contexts/authContext";
 import { useRoutes, Navigate } from "react-router-dom";
 
 function App() {
-  const { userLoggedIn } = useAuth();
+  const { userLoggedIn, currentUser } = useAuth();
 
-  const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
-    return userLoggedIn ? element : <Navigate to="/login" replace />;
+  const ProtectedRoute = ({ element, roles }: { element: JSX.Element; roles?: string[] }) => {
+    if (!userLoggedIn) return <Navigate to="/login" replace />;
+    if (roles && !roles.includes(currentUser?.role || "")) return <Navigate to="/home" replace />; // Ensure role is a string
+    return element;
   };
 
   const routesArray = [
@@ -25,10 +28,11 @@ function App() {
     { path: "/register", element: <Register /> },
     { path: "/home", element: <ProtectedRoute element={<Home />} /> },
     { path: "/upload", element: <ProtectedRoute element={<Upload />} /> },
-    { path: "/categories", element: <ProtectedRoute element={<Categories />} /> },
-    { path: '/categories/:categoryId', element: <ProtectedRoute element={<ProductsByCategory />} /> },
-    { path: '/categories/:categoryId/products/:productId', element: <ProtectedRoute element={<ProductDetails />} /> },
-    { path: '/categories/:categoryId/products/new', element: <ProtectedRoute element={<ProductDetails />} /> },
+    { path: "/categories", element: <ProtectedRoute element={<Categories />} roles={["Admin", "SuperUser"]} /> },
+    { path: '/categories/:categoryId', element: <ProtectedRoute element={<ProductsByCategory />} roles={["Admin", "SuperUser"]} /> },
+    { path: '/categories/:categoryId/products/:productId', element: <ProtectedRoute element={<ProductDetails />} roles={["Admin", "SuperUser"]} /> },
+    { path: '/categories/:categoryId/products/new', element: <ProtectedRoute element={<ProductDetails />} roles={["Admin", "SuperUser"]} /> },
+    { path: "/user-roles", element: <ProtectedRoute element={<UserRoles />} roles={["Admin", "SuperUser"]} /> },
   ];
 
   let routesElement = useRoutes(routesArray);
