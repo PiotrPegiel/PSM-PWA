@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc, Timestamp, query, where } from 'firebase/firestore';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
