@@ -101,9 +101,17 @@ const ProductDetails: React.FC = () => {
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setNewPictures(Array.from(e.target.files));
+        const files = e.target.files; // Extract files to a variable
+        if (files) {
+            setNewPictures((prev) => [...prev, ...Array.from(files)]);
+            e.target.value = ''; // Clear the upload field
         }
+    };
+
+    const getPreviewURL = (file: File) => URL.createObjectURL(file);
+
+    const handleRemoveQueuedPicture = (index: number) => {
+        setNewPictures((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleDeletePicture = async (path: string) => {
@@ -198,12 +206,35 @@ const ProductDetails: React.FC = () => {
                     </div>
                 ))}
                 {editMode && (
-                    <input
-                        type="file"
-                        multiple
-                        className="form-control mt-2"
-                        onChange={handleFileChange}
-                    />
+                    <>
+                        <input
+                            type="file"
+                            multiple
+                            className="form-control mt-2"
+                            onChange={handleFileChange}
+                        />
+                        {newPictures.length > 0 && (
+                            <div className="mt-3">
+                                <h5>Queued Pictures:</h5>
+                                {newPictures.map((file, index) => (
+                                    <div key={index} className="d-flex align-items-center mb-2">
+                                        <img
+                                            src={getPreviewURL(file)}
+                                            alt={`Queued ${index}`}
+                                            className="img-thumbnail me-2"
+                                            style={{ maxWidth: '100px', maxHeight: '100px' }}
+                                        />
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => handleRemoveQueuedPicture(index)}
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
             {editMode ? (
