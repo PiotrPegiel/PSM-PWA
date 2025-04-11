@@ -108,6 +108,68 @@ const ProductDetails: React.FC = () => {
         }
     };
 
+    const handleCapture = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            const capturePicture = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const file = new File([blob], `captured-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                        setNewPictures((prev) => [...prev, file]);
+                    }
+                });
+
+                stream.getTracks().forEach((track) => track.stop());
+            };
+
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+
+            const captureButton = document.createElement('button');
+            captureButton.textContent = 'Capture';
+            captureButton.style.position = 'absolute';
+            captureButton.style.bottom = '20px';
+            captureButton.style.padding = '10px 20px';
+            captureButton.style.backgroundColor = '#28a745';
+            captureButton.style.color = '#fff';
+            captureButton.style.border = 'none';
+            captureButton.style.borderRadius = '5px';
+            captureButton.style.cursor = 'pointer';
+
+            captureButton.onclick = () => {
+                capturePicture();
+                document.body.removeChild(modal);
+            };
+
+            modal.appendChild(video);
+            modal.appendChild(captureButton);
+            document.body.appendChild(modal);
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            alert('Unable to access the camera.');
+        }
+    };
+
     const getPreviewURL = (file: File) => URL.createObjectURL(file);
 
     const handleRemoveQueuedPicture = (index: number) => {
@@ -213,6 +275,12 @@ const ProductDetails: React.FC = () => {
                             className="form-control mt-2"
                             onChange={handleFileChange}
                         />
+                        <button
+                            className="btn btn-primary mt-2"
+                            onClick={handleCapture}
+                        >
+                            Open Camera
+                        </button>
                         {newPictures.length > 0 && (
                             <div className="mt-3">
                                 <h5>Queued Pictures:</h5>
