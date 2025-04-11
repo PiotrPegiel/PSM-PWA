@@ -86,59 +86,94 @@ const ProductsByCategory: React.FC = () => {
     }
 
     return (
-        <div className="container text-center mt-5">
-            <div className="d-flex justify-content-between align-items-center">
+        <div className="container mx-auto p-14">
+            <div className="flex items-center mb-4">
+                {/* <button
+                    className="text-gray-500 hover:text-gray-700 mr-4"
+                    onClick={() => navigate(-1)}
+                >
+                    &larr;
+                </button> */}
                 {editMode ? (
                     <input
                         type="text"
-                        className="form-control w-50"
+                        className="flex-grow border border-gray-300 rounded px-2 py-1 pr-2"
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
                     />
                 ) : (
-                    <h1>Products in {categoryName}</h1>
+                    <h1 className="text-xl font-bold flex-grow">{categoryName}</h1>
                 )}
                 {editMode ? (
-                    <div>
-                        <button className="btn btn-success me-2" onClick={handleSaveCategoryName}>
+                    <div className="flex space-x-2 pl-2">
+                        <button
+                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                            onClick={handleSaveCategoryName}
+                        >
                             Save
                         </button>
-                        <button className="btn btn-danger" onClick={handleDeleteCategory}>
+                        <button
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                            onClick={handleDeleteCategory}
+                        >
                             Delete
                         </button>
                     </div>
                 ) : (
-                    <button className="btn btn-primary" onClick={() => setEditMode(true)}>
+                    <button
+                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-400"
+                        onClick={() => setEditMode(true)}
+                    >
                         Edit
                     </button>
                 )}
             </div>
-            {products.length > 0 ? (
-                <ul className="list-group mt-4">
-                    {products.map(product => (
-                        <li key={product.id} className="list-group-item">
-                            <Link to={`/categories/${categoryId}/products/${product.id}`}>
-                                <strong>Name:</strong> {product.name}
-                            </Link>
-                            <br />
-                            <strong>Location:</strong> {product.location?._lat !== undefined && product.location?._long !== undefined
-                                ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
-                                : typeof product.location === 'string'
-                                ? product.location
-                                : 'N/A'}
-                            <br />
-                            <strong>Pictures:</strong> {product.pictures?.join(', ') || 'N/A'}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No products found for this category.</p>
-            )}
-            <Link to={`/categories/${categoryId}/products/new`} className="btn btn-primary mt-4">
-                Add Product
-            </Link>
+            <ul className="space-y-2">
+            {products.map(product => (
+            <li key={product.id} className="flex justify-between items-center border border-gray-300 rounded p-2">
+                <Link to={`/categories/${categoryId}/products/${product.id}`}>
+                    <strong>Name:</strong> {product.name}
+                </Link>
+                <br />
+            </li>
+        ))}
+            </ul>
+            <button
+                className="bg-black text-white w-full py-2 mt-4 rounded hover:bg-gray-800"
+                onClick={() => navigate(`/categories/${categoryId}/products/new`)}
+            >
+                Add
+            </button>
         </div>
     );
 };
 
 export default ProductsByCategory;
+
+
+// </div>
+// {products.length > 0 ? (
+//     <ul className="list-group mt-4">
+//         {products.map(product => (
+//             <li key={product.id} className="list-group-item">
+//                 <Link to={`/categories/${categoryId}/products/${product.id}`}>
+//                     <strong>Name:</strong> {product.name}
+//                 </Link>
+//                 <br />
+//                 <strong>Location:</strong> {product.location?._lat !== undefined && product.location?._long !== undefined
+//                     ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
+//                     : typeof product.location === 'string'
+//                     ? product.location
+//                     : 'N/A'}
+//                 <br />
+//                 <strong>Pictures:</strong> {product.pictures?.join(', ') || 'N/A'}
+//             </li>
+//         ))}
+//     </ul>
+// ) : (
+//     <p>No products found for this category.</p>
+// )}
+// <Link to={`/categories/${categoryId}/products/new`} className="btn btn-primary mt-4">
+//     Add Product
+// </Link>
+// </div>

@@ -15,6 +15,7 @@ const Header = () => {
     }
 
     return (
+        
         <nav className='flex flex-row w-full z-20 fixed top-0 left-0 h-12 border-b items-center bg-gray-200 px-4'>
             <button
                 onClick={() => setMenuOpen(!menuOpen)}
