@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { doc, getDoc, setDoc, deleteDoc, DocumentReference } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, DocumentReference, Timestamp } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 
 const ReservationNewEdit: React.FC = () => {
@@ -32,11 +32,11 @@ const ReservationNewEdit: React.FC = () => {
                     const data = reservationDoc.data();
                     setReservation({
                         ...data,
-                        from: data.from?.seconds
-                            ? new Date(data.from.seconds * 1000).toISOString().slice(0, 16)
+                        from: data.from instanceof Timestamp
+                            ? data.from.toDate().toLocaleString() // Convert to local datetime format
                             : '',
-                        to: data.to?.seconds
-                            ? new Date(data.to.seconds * 1000).toISOString().slice(0, 16)
+                        to: data.to instanceof Timestamp
+                            ? data.to.toDate().toLocaleString() // Convert to local datetime format
                             : '',
                     });
 
@@ -106,8 +106,8 @@ const ReservationNewEdit: React.FC = () => {
                 ...reservation,
                 userId: currentUser.uid, // Ensure userId is set from currentUser
                 productId: doc(firestore, 'products', reservation.productId), // Reconstruct Firestore document reference
-                from: reservation.from ? new Date(reservation.from) : null,
-                to: reservation.to ? new Date(reservation.to) : null,
+                from: reservation.from ? Timestamp.fromDate(new Date(reservation.from)) : null, // Convert to Firestore Timestamp
+                to: reservation.to ? Timestamp.fromDate(new Date(reservation.to)) : null, // Convert to Firestore Timestamp
             };
 
             await setDoc(reservationRef, formattedReservation);

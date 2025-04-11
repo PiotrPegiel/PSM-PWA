@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc, Timestamp } from 'firebase/firestore';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -49,6 +49,12 @@ const Home: React.FC = () => {
                             return {
                                 id: doc.id,
                                 ...data,
+                                from: data.from instanceof Timestamp
+                                    ? data.from.toDate().toLocaleString() // Convert Firestore Timestamp to local timezone
+                                    : 'N/A',
+                                to: data.to instanceof Timestamp
+                                    ? data.to.toDate().toLocaleString() // Convert Firestore Timestamp to local timezone
+                                    : 'N/A',
                                 productData,
                                 categoryData,
                             };
@@ -91,8 +97,8 @@ const Home: React.FC = () => {
                             <strong>Product Name:</strong> {reservation.productData?.name || 'N/A'} <br />
                             <strong>Category:</strong> {reservation.categoryData?.name || 'N/A'} <br />
                             <strong>User ID:</strong> {reservation.userId || 'N/A'} <br />
-                            <strong>From:</strong> {reservation.from?.seconds ? new Date(reservation.from.seconds * 1000).toLocaleString() : 'N/A'} <br />
-                            <strong>To:</strong> {reservation.to?.seconds ? new Date(reservation.to.seconds * 1000).toLocaleString() : 'N/A'} <br />
+                            <strong>From:</strong> {reservation.from} <br />
+                            <strong>To:</strong> {reservation.to} <br />
                             <strong>Product Reference:</strong> {reservation.productId?.id || 'N/A'}
                         </li>
                     ))}
