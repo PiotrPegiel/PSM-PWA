@@ -2,6 +2,8 @@ import React, { useContext, useState, useEffect } from "react";
 import { auth } from "../../firebase/firebase";
 // import { GoogleAuthProvider } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
+import { firestore } from "../../firebase/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const AuthContext = React.createContext<AuthContextType>({
   userLoggedIn: false,
@@ -17,6 +19,7 @@ export type AuthContextType = {
   currentUser: {
       displayName?: string;
       email: string;
+      role?: string; // Add role to the type
   } | null;
   userLoggedIn: boolean; // Add userLoggedIn to the type
 }
@@ -40,13 +43,23 @@ export function AuthProvider({ children }: React.PropsWithChildren<{}>) {
 
   async function initializeUser(user: import("firebase/auth").User | null) {
     if (user) {
+      const userRolesRef = doc(firestore, "userRoles", user.uid);
+      const userRolesDoc = await getDoc(userRolesRef);
+
+      let role = "user";
+      if (userRolesDoc.exists()) {
+        role = userRolesDoc.data()?.role || "User"; // Retrieve role from Firestore
+      } else {
+        await setDoc(userRolesRef, { userId: user.uid, role });
+      }
 
       setCurrentUser({
         displayName: user.displayName || undefined,
-        email: user.email || ""
+        email: user.email || "",
+        role, // Set role
       });
 
-      // check if provider is email and password login
+      // Check if provider is email and password login
       const isEmail = user.providerData.some(
         (provider) => provider.providerId === "password"
       );
