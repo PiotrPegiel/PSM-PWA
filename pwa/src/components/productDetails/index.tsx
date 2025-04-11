@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { getStorage, ref, getDownloadURL, uploadBytesResumable, deleteObject } from 'firebase/storage';
 
 const ProductDetails: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -11,6 +12,10 @@ const ProductDetails: React.FC = () => {
     const [product, setProduct] = useState<any>({});
     const [editMode, setEditMode] = useState<boolean>(!productId); // Start in edit mode if productId is not provided
     const [loading, setLoading] = useState<boolean>(true);
+    const [pictures, setPictures] = useState<string[]>([]);
+    const [newPictures, setNewPictures] = useState<File[]>([]);
+
+    const storage = getStorage();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -18,7 +23,21 @@ const ProductDetails: React.FC = () => {
                 const productRef = doc(firestore, 'products', productId);
                 const productDoc = await getDoc(productRef);
                 if (productDoc.exists()) {
-                    setProduct(productDoc.data());
+                    const data = productDoc.data();
+                    setProduct(data);
+                    if (data.pictures) {
+                        const pictureUrls = await Promise.all(
+                            data.pictures.map(async (path: string) => {
+                                if (path.startsWith('products/')) {
+                                    // Assume it's a Firebase Storage path
+                                    return await getDownloadURL(ref(storage, path));
+                                }
+                                // Otherwise, return the path as is (external URL)
+                                return path;
+                            })
+                        );
+                        setPictures(pictureUrls);
+                    }
                 }
             }
             setLoading(false);
@@ -29,15 +48,25 @@ const ProductDetails: React.FC = () => {
         } else {
             setLoading(false);
         }
-    }, [firestore, productId]);
+    }, [firestore, productId, storage]);
 
     const handleSave = async () => {
         if (firestore) {
             const productRef = productId
                 ? doc(firestore, 'products', productId)
                 : doc(firestore, 'products', `${Date.now()}`); // Generate a new ID for new products
+
+            const uploadedPaths = await Promise.all(
+                newPictures.map(async (file) => {
+                    const storageRef = ref(storage, `products/${file.name}`);
+                    await uploadBytesResumable(storageRef, file);
+                    return `products/${file.name}`;
+                })
+            );
+
             await setDoc(productRef, {
                 ...product,
+                pictures: [...(product.pictures || []), ...uploadedPaths],
                 categoryId: doc(firestore, 'categories', categoryId || ''),
             });
             alert('Product saved successfully!');
@@ -47,10 +76,68 @@ const ProductDetails: React.FC = () => {
 
     const handleDelete = async () => {
         if (firestore && productId) {
-            const productRef = doc(firestore, 'products', productId);
-            await deleteDoc(productRef);
-            alert('Product deleted successfully!');
-            navigate(`/categories/${categoryId}`);
+            try {
+                // Delete all associated pictures from Firebase Storage
+                if (product.pictures && product.pictures.length > 0) {
+                    await Promise.all(
+                        product.pictures.map(async (path: string) => {
+                            const storageRef = ref(storage, path);
+                            await deleteObject(storageRef);
+                        })
+                    );
+                }
+
+                // Delete the product document from Firestore
+                const productRef = doc(firestore, 'products', productId);
+                await deleteDoc(productRef);
+
+                alert('Product and associated pictures deleted successfully!');
+                navigate(`/categories/${categoryId}`);
+            } catch (error) {
+                console.error('Error deleting product or pictures:', error);
+                alert('Failed to delete product or associated pictures.');
+            }
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setNewPictures(Array.from(e.target.files));
+        }
+    };
+
+    const handleDeletePicture = async (path: string) => {
+        try {
+            const storageRef = ref(storage, path);
+            await deleteObject(storageRef);
+
+            // Update product pictures in Firestore
+            const updatedPictures = product.pictures.filter((p: string) => p !== path);
+            setProduct((prevProduct: any) => ({
+                ...prevProduct,
+                pictures: updatedPictures,
+            }));
+
+            if (productId) {
+                const productRef = doc(firestore, 'products', productId);
+                await setDoc(productRef, { pictures: updatedPictures }, { merge: true }); // Only update pictures field
+            }
+
+            // Refresh the displayed pictures
+            const pictureUrls = await Promise.all(
+                updatedPictures.map(async (updatedPath: string) => {
+                    if (updatedPath.startsWith('products/')) {
+                        return await getDownloadURL(ref(storage, updatedPath));
+                    }
+                    return updatedPath;
+                })
+            );
+            setPictures(pictureUrls);
+
+            alert('Picture deleted successfully!');
+        } catch (error) {
+            console.error('Error deleting picture:', error);
+            alert('Failed to delete picture.');
         }
     };
 
@@ -81,7 +168,7 @@ const ProductDetails: React.FC = () => {
                         type="text"
                         className="form-control"
                         value={
-                            product.location?._lat !== undefined && product.location?._long !== undefined
+                            typeof product.location === 'object' && product.location?._lat !== undefined && product.location?._long !== undefined
                                 ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
                                 : product.location || ''
                         }
@@ -89,7 +176,7 @@ const ProductDetails: React.FC = () => {
                     />
                 ) : (
                     <p>
-                        {product.location?._lat !== undefined && product.location?._long !== undefined
+                        {typeof product.location === 'object' && product.location?._lat !== undefined && product.location?._long !== undefined
                             ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
                             : product.location || 'N/A'}
                     </p>
@@ -97,22 +184,26 @@ const ProductDetails: React.FC = () => {
             </div>
             <div className="form-group">
                 <label>Pictures:</label>
-                {editMode ? (
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Comma-separated URLs"
-                        value={product.pictures?.join(',') || ''}
-                        onChange={(e) =>
-                            setProduct({ ...product, pictures: e.target.value.split(',') })
-                        }
-                    />
-                ) : (
-                    <div>
-                        {product.pictures?.map((url: string, index: number) => (
-                            <img key={index} src={url} alt={`Product ${index}`} className="img-thumbnail" />
-                        ))}
+                {pictures.map((url, index) => (
+                    <div key={index} className="d-flex align-items-center mb-2">
+                        <img src={url} alt={`Product ${index}`} className="img-thumbnail me-2" />
+                        {editMode && (
+                            <button
+                                className="btn btn-danger btn-sm"
+                                onClick={() => handleDeletePicture(product.pictures[index])}
+                            >
+                                🗑️
+                            </button>
+                        )}
                     </div>
+                ))}
+                {editMode && (
+                    <input
+                        type="file"
+                        multiple
+                        className="form-control mt-2"
+                        onChange={handleFileChange}
+                    />
                 )}
             </div>
             {editMode ? (
