@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { Link } from 'react-router-dom';
 
 const Categories: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -57,7 +58,9 @@ const Categories: React.FC = () => {
                 <ul className="list-group mt-4">
                     {categories.map(category => (
                         <li key={category.id} className="list-group-item">
-                            {category.name}
+                            <Link to={`/categories/${category.id}`} className="text-decoration-none">
+                                {category.name}
+                            </Link>
                         </li>
                     ))}
                 </ul>
