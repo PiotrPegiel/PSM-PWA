@@ -3,6 +3,7 @@ import Login from "./components/auth/login";
 import Register from "./components/auth/register";
 import Categories from "./components/categories";
 import ProductsByCategory from './components/productsByCategory';
+import ProductDetails from "./components/productDetails";
 
 import Header from "./components/header";
 import Home from "./components/home";
@@ -26,6 +27,8 @@ function App() {
     { path: "/upload", element: <ProtectedRoute element={<Upload />} /> },
     { path: "/categories", element: <ProtectedRoute element={<Categories />} /> },
     { path: '/categories/:categoryId', element: <ProtectedRoute element={<ProductsByCategory />} /> },
+    { path: '/categories/:categoryId/products/:productId', element: <ProtectedRoute element={<ProductDetails />} /> },
+    { path: '/categories/:categoryId/products/new', element: <ProtectedRoute element={<ProductDetails />} /> },
   ];
 
   let routesElement = useRoutes(routesArray);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 
 const ProductsByCategory: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -51,12 +51,16 @@ const ProductsByCategory: React.FC = () => {
                 <ul className="list-group mt-4">
                     {products.map(product => (
                         <li key={product.id} className="list-group-item">
-                            <strong>Name:</strong> {product.name} <br />
+                            <Link to={`/categories/${categoryId}/products/${product.id}`}>
+                                <strong>Name:</strong> {product.name}
+                            </Link>
+                            <br />
                             <strong>Location:</strong> {product.location?._lat !== undefined && product.location?._long !== undefined
                                 ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
                                 : typeof product.location === 'string'
                                 ? product.location
-                                : 'N/A'} <br />
+                                : 'N/A'}
+                            <br />
                             <strong>Pictures:</strong> {product.pictures?.join(', ') || 'N/A'}
                         </li>
                     ))}
@@ -64,6 +68,9 @@ const ProductsByCategory: React.FC = () => {
             ) : (
                 <p>No products found for this category.</p>
             )}
+            <Link to={`/categories/${categoryId}/products/new`} className="btn btn-primary mt-4">
+                Add Product
+            </Link>
         </div>
     );
 };
