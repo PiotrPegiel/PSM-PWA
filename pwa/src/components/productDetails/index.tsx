@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, GeoPoint } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL, uploadBytesResumable, deleteObject } from 'firebase/storage';
 
 const ProductDetails: React.FC = () => {
@@ -14,6 +14,8 @@ const ProductDetails: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [pictures, setPictures] = useState<string[]>([]);
     const [newPictures, setNewPictures] = useState<File[]>([]);
+    const [latitude, setLatitude] = useState<number | ''>('');
+    const [longitude, setLongitude] = useState<number | ''>('');
 
     const storage = getStorage();
 
@@ -25,6 +27,12 @@ const ProductDetails: React.FC = () => {
                 if (productDoc.exists()) {
                     const data = productDoc.data();
                     setProduct(data);
+
+                    if (data.location instanceof GeoPoint) {
+                        setLatitude(data.location.latitude);
+                        setLongitude(data.location.longitude);
+                    }
+
                     if (data.pictures) {
                         const pictureUrls = await Promise.all(
                             data.pictures.map(async (path: string) => {
@@ -64,8 +72,11 @@ const ProductDetails: React.FC = () => {
                 })
             );
 
+            const location = latitude !== '' && longitude !== '' ? new GeoPoint(latitude, longitude) : null;
+
             await setDoc(productRef, {
                 ...product,
+                location,
                 pictures: [...(product.pictures || []), ...uploadedPaths],
                 categoryId: doc(firestore, 'categories', categoryId || ''),
             });
@@ -103,8 +114,76 @@ const ProductDetails: React.FC = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files; // Extract files to a variable
         if (files) {
-            setNewPictures((prev) => [...prev, ...Array.from(files)]);
+            const validFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+            if (validFiles.length !== files.length) {
+                alert('Only image files are allowed.');
+            }
+            setNewPictures((prev) => [...prev, ...validFiles]);
             e.target.value = ''; // Clear the upload field
+        }
+    };
+
+    const handleCapture = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            const capturePicture = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob((blob) => {
+                    if (blob && blob.type.startsWith('image/')) {
+                        const file = new File([blob], `captured-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                        setNewPictures((prev) => [...prev, file]);
+                    } else {
+                        alert('Captured file is not a valid image.');
+                    }
+                });
+
+                stream.getTracks().forEach((track) => track.stop());
+            };
+
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+
+            const captureButton = document.createElement('button');
+            captureButton.textContent = 'Capture';
+            captureButton.style.position = 'absolute';
+            captureButton.style.bottom = '20px';
+            captureButton.style.padding = '10px 20px';
+            captureButton.style.backgroundColor = '#28a745';
+            captureButton.style.color = '#fff';
+            captureButton.style.border = 'none';
+            captureButton.style.borderRadius = '5px';
+            captureButton.style.cursor = 'pointer';
+
+            captureButton.onclick = () => {
+                capturePicture();
+                document.body.removeChild(modal);
+            };
+
+            modal.appendChild(video);
+            modal.appendChild(captureButton);
+            document.body.appendChild(modal);
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            alert('Unable to access the camera.');
         }
     };
 
@@ -149,13 +228,31 @@ const ProductDetails: React.FC = () => {
         }
     };
 
+    const handleLatitudeChange = (value: string) => {
+        const parsedValue = value === '' ? '' : parseFloat(value);
+        if (parsedValue === '' || (parsedValue >= -90 && parsedValue <= 90)) {
+            setLatitude(parsedValue);
+        } else {
+            alert('Latitude must be between -90 and 90.');
+        }
+    };
+
+    const handleLongitudeChange = (value: string) => {
+        const parsedValue = value === '' ? '' : parseFloat(value);
+        if (parsedValue === '' || (parsedValue >= -180 && parsedValue <= 180)) {
+            setLongitude(parsedValue);
+        } else {
+            alert('Longitude must be between -180 and 180.');
+        }
+    };
+
     if (loading) {
         return <div>Loading...</div>;
     }
 
     return (
         <div className="container text-center mt-5">
-            <h1>{editMode ? 'Edit Product' : 'Product Details'}</h1>
+            <h1>{editMode && !productId ? 'Add New Product' : editMode ? 'Edit Product' : 'Product Details'}</h1>
             <div className="form-group">
                 <label>Name:</label>
                 {editMode ? (
@@ -170,24 +267,29 @@ const ProductDetails: React.FC = () => {
                 )}
             </div>
             <div className="form-group">
-                <label>Location:</label>
+                <label>Latitude:</label>
                 {editMode ? (
                     <input
-                        type="text"
+                        type="number"
                         className="form-control"
-                        value={
-                            typeof product.location === 'object' && product.location?._lat !== undefined && product.location?._long !== undefined
-                                ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
-                                : product.location || ''
-                        }
-                        onChange={(e) => setProduct({ ...product, location: e.target.value })}
+                        value={latitude}
+                        onChange={(e) => handleLatitudeChange(e.target.value)}
                     />
                 ) : (
-                    <p>
-                        {typeof product.location === 'object' && product.location?._lat !== undefined && product.location?._long !== undefined
-                            ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
-                            : product.location || 'N/A'}
-                    </p>
+                    <p>{latitude !== '' ? latitude : 'N/A'}</p>
+                )}
+            </div>
+            <div className="form-group">
+                <label>Longitude:</label>
+                {editMode ? (
+                    <input
+                        type="number"
+                        className="form-control"
+                        value={longitude}
+                        onChange={(e) => handleLongitudeChange(e.target.value)}
+                    />
+                ) : (
+                    <p>{longitude !== '' ? longitude : 'N/A'}</p>
                 )}
             </div>
             <div className="form-group">
@@ -213,6 +315,12 @@ const ProductDetails: React.FC = () => {
                             className="form-control mt-2"
                             onChange={handleFileChange}
                         />
+                        <button
+                            className="btn btn-primary mt-2"
+                            onClick={handleCapture}
+                        >
+                            Open Camera
+                        </button>
                         {newPictures.length > 0 && (
                             <div className="mt-3">
                                 <h5>Queued Pictures:</h5>
