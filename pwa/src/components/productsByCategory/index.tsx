@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
-import { useParams, Link } from 'react-router-dom';
+import { collection, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 
 const ProductsByCategory: React.FC = () => {
     const { firestore } = useFirebase() || {};
     const { categoryId } = useParams<{ categoryId: string }>();
+    const navigate = useNavigate();
     const [products, setProducts] = useState<any[]>([]);
     const [categoryName, setCategoryName] = useState<string>('');
+    const [newCategoryName, setNewCategoryName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
+    const [editMode, setEditMode] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -17,7 +20,9 @@ const ProductsByCategory: React.FC = () => {
                     // Fetch category name
                     const categoryDoc = await getDoc(doc(firestore, 'categories', categoryId));
                     if (categoryDoc.exists()) {
-                        setCategoryName(categoryDoc.data().name || 'Unknown Category');
+                        const name = categoryDoc.data().name || 'Unknown Category';
+                        setCategoryName(name);
+                        setNewCategoryName(name);
                     }
 
                     // Fetch products for the category
@@ -40,13 +45,74 @@ const ProductsByCategory: React.FC = () => {
         fetchProducts();
     }, [firestore, categoryId]);
 
+    const handleSaveCategoryName = async () => {
+        if (firestore && categoryId) {
+            try {
+                const categoryRef = doc(firestore, 'categories', categoryId);
+                await updateDoc(categoryRef, { name: newCategoryName });
+                setCategoryName(newCategoryName);
+                setEditMode(false);
+                alert('Category name updated successfully!');
+            } catch (error) {
+                console.error('Error updating category name:', error);
+            }
+        }
+    };
+
+    const handleDeleteCategory = async () => {
+        if (firestore && categoryId) {
+            try {
+                // Delete all products in the category
+                const productsRef = collection(firestore, 'products');
+                const q = query(productsRef, where('categoryId', '==', doc(firestore, 'categories', categoryId)));
+                const querySnapshot = await getDocs(q);
+                const deletePromises = querySnapshot.docs.map(productDoc => deleteDoc(doc(firestore, 'products', productDoc.id)));
+                await Promise.all(deletePromises);
+
+                // Delete the category
+                const categoryRef = doc(firestore, 'categories', categoryId);
+                await deleteDoc(categoryRef);
+
+                alert('Category and its products deleted successfully!');
+                navigate('/categories');
+            } catch (error) {
+                console.error('Error deleting category or products:', error);
+            }
+        }
+    };
+
     if (loading) {
         return <div>Loading products...</div>;
     }
 
     return (
         <div className="container text-center mt-5">
-            <h1>Products in {categoryName}</h1>
+            <div className="d-flex justify-content-between align-items-center">
+                {editMode ? (
+                    <input
+                        type="text"
+                        className="form-control w-50"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                ) : (
+                    <h1>Products in {categoryName}</h1>
+                )}
+                {editMode ? (
+                    <div>
+                        <button className="btn btn-success me-2" onClick={handleSaveCategoryName}>
+                            Save
+                        </button>
+                        <button className="btn btn-danger" onClick={handleDeleteCategory}>
+                            Delete
+                        </button>
+                    </div>
+                ) : (
+                    <button className="btn btn-primary" onClick={() => setEditMode(true)}>
+                        Edit
+                    </button>
+                )}
+            </div>
             {products.length > 0 ? (
                 <ul className="list-group mt-4">
                     {products.map(product => (
