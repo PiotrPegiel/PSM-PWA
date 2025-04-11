@@ -251,115 +251,133 @@ const ProductDetails: React.FC = () => {
     }
 
     return (
-        <div className="container text-center mt-5">
-            <h1>{editMode && !productId ? 'Add New Product' : editMode ? 'Edit Product' : 'Product Details'}</h1>
-            <div className="form-group">
-                <label>Name:</label>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <h1 className="text-xl font-semibold mb-6">
+            {editMode && !productId ? 'New Product' : editMode ? 'Edit Product' : 'Product Details'}
+        </h1>
+        <div className="w-full max-w-sm">
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Name:</label>
                 {editMode ? (
                     <input
                         type="text"
-                        className="form-control"
+                        className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={product.name || ''}
                         onChange={(e) => setProduct({ ...product, name: e.target.value })}
+                        placeholder="Name"
                     />
                 ) : (
-                    <p>{product.name}</p>
+                    <p className="text-sm">{product.name}</p>
                 )}
             </div>
-            <div className="form-group">
-                <label>Latitude:</label>
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Latitude:</label>
                 {editMode ? (
                     <input
                         type="number"
-                        className="form-control"
+                        className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={latitude}
                         onChange={(e) => handleLatitudeChange(e.target.value)}
+                        placeholder="Latitude"
                     />
                 ) : (
-                    <p>{latitude !== '' ? latitude : 'N/A'}</p>
+                    <p className="text-sm">{latitude !== '' ? latitude : 'N/A'}</p>
                 )}
             </div>
-            <div className="form-group">
-                <label>Longitude:</label>
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Longitude:</label>
                 {editMode ? (
                     <input
                         type="number"
-                        className="form-control"
+                        className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={longitude}
                         onChange={(e) => handleLongitudeChange(e.target.value)}
+                        placeholder="Longitude"
                     />
                 ) : (
-                    <p>{longitude !== '' ? longitude : 'N/A'}</p>
+                    <p className="text-sm">{longitude !== '' ? longitude : 'N/A'}</p>
                 )}
             </div>
-            <div className="form-group">
-                <label>Pictures:</label>
-                {pictures.map((url, index) => (
-                    <div key={index} className="d-flex align-items-center mb-2">
-                        <img src={url} alt={`Product ${index}`} className="img-thumbnail me-2" />
-                        {editMode && (
-                            <button
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleDeletePicture(product.pictures[index])}
-                            >
-                                🗑️
-                            </button>
-                        )}
-                    </div>
-                ))}
-                {editMode && (
-                    <>
-                        <input
-                            type="file"
-                            multiple
-                            className="form-control mt-2"
-                            onChange={handleFileChange}
-                        />
+            <div className="mb-4">
+            <label className="block text-left font-medium mb-2">Pictures:</label>
+            {pictures.map((url, index) => (
+                <div key={index} className="grid grid-cols-1 mb-2 gap-2">
+                    <img src={url} alt={`Product ${index}`} className="w-auto h-auto object-cover rounded-md mr-2" />
+                    {editMode && (
                         <button
-                            className="btn btn-primary mt-2"
-                            onClick={handleCapture}
+                            className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-400"
+                            onClick={() => handleDeletePicture(product.pictures[index])}
                         >
-                            Open Camera
+                            🗑️
                         </button>
-                        {newPictures.length > 0 && (
-                            <div className="mt-3">
-                                <h5>Queued Pictures:</h5>
-                                {newPictures.map((file, index) => (
-                                    <div key={index} className="d-flex align-items-center mb-2">
-                                        <img
-                                            src={getPreviewURL(file)}
-                                            alt={`Queued ${index}`}
-                                            className="img-thumbnail me-2"
-                                            style={{ maxWidth: '100px', maxHeight: '100px' }}
-                                        />
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() => handleRemoveQueuedPicture(index)}
-                                        >
-                                            🗑️
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
-            {editMode ? (
-                <button className="btn btn-success mt-3" onClick={handleSave}>
-                    Save
-                </button>
-            ) : (
-                <div className="mt-3">
-                    <button className="btn btn-primary me-2" onClick={() => setEditMode(true)}>
-                        Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={handleDelete}>
-                        Delete
+                    )}
+                </div>
+            ))}
+            {editMode && (
+                <>
+                <div className="grid grid-cols-1 gap-4">
+                    <input
+                        type="file"
+                        multiple
+                        className="mt-2 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-gray-500 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-700 focus:outline-none disabled:pointer-events-none disabled:opacity-60"
+                        onChange={handleFileChange}
+                    />
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2 hover:bg-blue-600"
+                        onClick={handleCapture}
+                    >
+                        Open Camera
                     </button>
                 </div>
+                    {newPictures.length > 0 && (
+                        <div className="mt-4 grid-cols-1">
+                            <h5 className="text-lg font-medium mb-2">Queued Pictures:</h5>
+                            {newPictures.map((file, index) => (
+                                <div key={index} className="grid grid-cols-1 mb-2 gap-2 ">
+                                    <img
+                                        src={getPreviewURL(file)}
+                                        alt={`Queued ${index}`}
+                                        className="w-auto h-auto object-cover rounded-md mr-2"
+                                    />
+                                    <button
+                                        className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-400"
+                                        onClick={() => handleRemoveQueuedPicture(index)}
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
         </div>
+        </div>
+
+        {editMode ? (
+            <button
+                className="w-full max-w-sm bg-black text-white py-3 rounded-lg mt-6 text-sm font-medium hover:bg-gray-800"
+                onClick={handleSave}
+            >
+                Save
+            </button>
+        ) : (
+            <div className="flex space-x-4 mt-6">
+                <button
+                    className="bg-gray-500 text-white py-3 px-6 rounded-lg text-sm font-medium hover:bg-gray-400"
+                    onClick={() => setEditMode(true)}
+                >
+                    Edit
+                </button>
+                <button
+                    className="bg-red-500 text-white py-3 px-6 rounded-lg text-sm font-medium hover:bg-red-600"
+                    onClick={handleDelete}
+                >
+                    Delete
+                </button>
+            </div>
+        )}
+    </div>
     );
 };
 

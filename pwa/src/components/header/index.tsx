@@ -15,6 +15,7 @@ const Header = () => {
     }
 
     return (
+        
         <nav className='flex flex-row w-full z-20 fixed top-0 left-0 h-12 border-b items-center bg-gray-200 px-4'>
             <button
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -23,7 +24,7 @@ const Header = () => {
                 ☰
             </button>
             {menuOpen && (
-                <div className='absolute top-12 right-0 w-16 bg-white shadow-md h-auto rounded-md'>
+                <div className='absolute top-12 right-0 w-24 bg-white shadow-md h-auto rounded-md'>
                     <ul className='flex flex-col items-center p-2 right-0' >
                         <li className='py-1' >
                             <Link to='/' className='text-sm text-stone-950 no-underline'>Home</Link>
