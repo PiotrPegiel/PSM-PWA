@@ -9,9 +9,11 @@ import UserRoles from "./components/userRoles";
 import Header from "./components/header";
 import Home from "./components/home";
 import Upload from "./components/storage";
+import Profile from "./components/profile";
 
 import { useAuth } from "./contexts/authContext";
 import { useRoutes, Navigate } from "react-router-dom";
+import Admin from "./components/admin";
 
 function App() {
   const { userLoggedIn, currentUser } = useAuth();
@@ -27,7 +29,9 @@ function App() {
     { path: "/login", element: <Login /> },
     { path: "/register", element: <Register /> },
     { path: "/home", element: <ProtectedRoute element={<Home />} /> },
+    { path: "/admin", element: <ProtectedRoute element={<Admin />} /> },
     { path: "/upload", element: <ProtectedRoute element={<Upload />} /> },
+    { path: "/profile", element: <ProtectedRoute element={<Profile />} /> },
     { path: "/categories", element: <ProtectedRoute element={<Categories />} roles={["Admin", "SuperUser"]} /> },
     { path: '/categories/:categoryId', element: <ProtectedRoute element={<ProductsByCategory />} roles={["Admin", "SuperUser"]} /> },
     { path: '/categories/:categoryId/products/:productId', element: <ProtectedRoute element={<ProductDetails />} roles={["Admin", "SuperUser"]} /> },
