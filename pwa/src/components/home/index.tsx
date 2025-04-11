@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc, Timestamp, query, where } from 'firebase/firestore';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,68 +13,80 @@ const Home: React.FC = () => {
     // Fetch reservations and resolve references
     useEffect(() => {
         const fetchReservations = async () => {
+            if (!firestore || !currentUser) {
+                return; // Exit early if not initialized
+            }
+
             try {
-                if (firestore) {
-                    const reservationsRef = collection(firestore, 'reservations');
-                    const querySnapshot = await getDocs(reservationsRef);
+                const reservationsRef = collection(firestore, 'reservations');
+                const now = Timestamp.now();
+                const q = query(
+                    reservationsRef,
+                    where('userId', '==', currentUser.uid),
+                    where('to', '>=', now)
+                );
 
-                    if (querySnapshot.empty) {
-                        console.log('No reservations found in Firestore.');
-                        setReservations([]);
-                        return;
-                    }
+                const querySnapshot = await getDocs(q);
 
-                    const allReservations = await Promise.all(
-                        querySnapshot.docs.map(async doc => {
-                            const data = doc.data();
-                            let productData = null;
-                            let categoryData = null;
+                if (querySnapshot.empty) {
+                    console.log('No reservations found for the current user.');
+                    setReservations([]);
+                    return;
+                }
 
-                            // Resolve productId reference
-                            if (data.productId instanceof DocumentReference) {
-                                const productDoc = await getDoc(data.productId);
-                                if (productDoc.exists()) {
-                                    productData = productDoc.data();
+                const allReservations = await Promise.all(
+                    querySnapshot.docs.map(async doc => {
+                        const data = doc.data();
+                        let productData = null;
+                        let categoryData = null;
 
-                                    // Resolve categoryId reference within the product
-                                    if (productData.categoryId instanceof DocumentReference) {
-                                        const categoryDoc = await getDoc(productData.categoryId);
-                                        if (categoryDoc.exists()) {
-                                            categoryData = categoryDoc.data();
-                                        }
+                        if (data.productId instanceof DocumentReference) {
+                            const productDoc = await getDoc(data.productId);
+                            if (productDoc.exists()) {
+                                productData = productDoc.data();
+
+                                if (productData.categoryId instanceof DocumentReference) {
+                                    const categoryDoc = await getDoc(productData.categoryId);
+                                    if (categoryDoc.exists()) {
+                                        categoryData = categoryDoc.data();
                                     }
                                 }
                             }
+                        }
 
-                            return {
-                                id: doc.id,
-                                ...data,
-                                from: data.from instanceof Timestamp
-                                    ? data.from.toDate().toLocaleString() // Convert Firestore Timestamp to local timezone
-                                    : 'N/A',
-                                to: data.to instanceof Timestamp
-                                    ? data.to.toDate().toLocaleString() // Convert Firestore Timestamp to local timezone
-                                    : 'N/A',
-                                productData,
-                                categoryData,
-                            };
-                        })
-                    );
+                        return {
+                            id: doc.id,
+                            ...data,
+                            from: data.from instanceof Timestamp
+                                ? data.from.toDate().toLocaleString()
+                                : 'N/A',
+                            to: data.to instanceof Timestamp
+                                ? data.to.toDate().toLocaleString()
+                                : 'N/A',
+                            productData,
+                            categoryData,
+                        };
+                    })
+                );
 
-                    console.log('All Reservations:', allReservations);
-                    setReservations(allReservations);
+                setReservations(allReservations);
+            } catch (error: any) {
+                if (error.code === 'failed-precondition' || error.code === 'permission-denied') {
+                    console.error('Firestore index required. Create it here:', error.message);
                 } else {
-                    console.error('Firestore instance is not initialized.');
+                    console.error('Error fetching reservations:', error);
                 }
-            } catch (error) {
-                console.error('Error fetching reservations:', error);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchReservations();
-    }, [firestore]);
+    }, [firestore, currentUser]);
+
+    if (!firestore || !currentUser) {
+        return <div>Initializing...</div>; // Show a fallback UI while initializing
+    }
 
     if (loading) {
         return <div>Loading reservations...</div>;
