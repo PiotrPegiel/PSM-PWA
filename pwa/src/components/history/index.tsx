@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc, Timestamp, query, where } from 'firebase/firestore';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { collection, getDocs, getDoc, query, where, Timestamp, DocumentReference } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-const Home: React.FC = () => {
+const History: React.FC = () => {
     const { firestore, currentUser } = useFirebase() || {};
     const [reservations, setReservations] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const navigate = useNavigate();
 
-    // Fetch reservations and resolve references
     useEffect(() => {
         const fetchReservations = async () => {
             if (!firestore || !currentUser) {
-                return; // Exit early if not initialized
+                return;
             }
 
             try {
@@ -23,13 +21,14 @@ const Home: React.FC = () => {
                 const q = query(
                     reservationsRef,
                     where('userId', '==', currentUser.uid),
-                    where('to', '>=', now)
+                    where('from', '<=', now),
+                    where('to', '<=', now)
                 );
 
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
-                    console.log('No reservations found for the current user.');
+                    console.log('No past reservations found for the current user.');
                     setReservations([]);
                     return;
                 }
@@ -85,17 +84,16 @@ const Home: React.FC = () => {
     }, [firestore, currentUser]);
 
     if (!firestore || !currentUser) {
-        return <div>Initializing...</div>; // Show a fallback UI while initializing
+        return <div>Initializing...</div>;
     }
 
     if (loading) {
-        return <div>Loading reservations...</div>;
+        return <div>Loading past reservations...</div>;
     }
-
 
     return (
         <div className="container text-center mt-5">
-            <h1>All Reservations</h1>
+            <h1>Past Reservations</h1>
             {reservations.length > 0 ? (
                 <ul className="list-group mt-4">
                     {reservations.map(reservation => (
@@ -116,12 +114,10 @@ const Home: React.FC = () => {
                     ))}
                 </ul>
             ) : (
-                <p>No reservations found.</p>
+                <p>No past reservations found.</p>
             )}
-
-                <button onClick={() => navigate('/new-reservation')} className="btn btn-success mt-3">New Reservation</button>
-            </div>
+        </div>
     );
 };
 
-export default Home;
+export default History;

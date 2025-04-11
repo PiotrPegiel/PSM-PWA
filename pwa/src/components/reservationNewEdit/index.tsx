@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, DocumentReference, Timestamp } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 
 const ReservationNewEdit: React.FC = () => {
-    const { firestore, storage } = useFirebase() || {}; // Ensure storage is included in FirebaseContextType
+    const { firestore, storage, currentUser } = useFirebase() || {}; // Include currentUser from FirebaseContext
     const { reservationId } = useParams<{ reservationId: string }>();
+    const location = useLocation(); // Access the state passed via navigate
     const navigate = useNavigate();
 
-    const [reservation, setReservation] = useState<any>({});
-    const [product, setProduct] = useState<{ [key: string]: any }>({}); // Properly type product as an object
+    const [reservation, setReservation] = useState<any>(location.state?.reservation || {}); // Initialize with state or empty object
+    const [product, setProduct] = useState<{ [key: string]: any }>(
+        location.state?.reservation?.productId
+            ? {
+                  name: location.state?.reservation?.productName || 'N/A',
+                  location: location.state?.reservation?.productLocation || 'N/A',
+                  pictures: location.state?.reservation?.productPictures || [],
+              }
+            : {}
+    ); // Properly type product as an object
     const [editMode, setEditMode] = useState<boolean>(!reservationId); // Start in edit mode if no reservationId
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -23,16 +32,16 @@ const ReservationNewEdit: React.FC = () => {
                     const data = reservationDoc.data();
                     setReservation({
                         ...data,
-                        from: data.from?.seconds
-                            ? new Date(data.from.seconds * 1000).toISOString().slice(0, 16)
+                        from: data.from instanceof Timestamp
+                            ? data.from.toDate().toLocaleString() // Convert to local datetime format
                             : '',
-                        to: data.to?.seconds
-                            ? new Date(data.to.seconds * 1000).toISOString().slice(0, 16)
+                        to: data.to instanceof Timestamp
+                            ? data.to.toDate().toLocaleString() // Convert to local datetime format
                             : '',
                     });
 
-                    // Fetch product details
-                    if (data.productId) {
+                    // Fetch product details dynamically
+                    if (data.productId instanceof DocumentReference) {
                         const productDoc = await getDoc(data.productId);
                         if (productDoc.exists()) {
                             const productData = productDoc.data() as { [key: string]: any }; // Explicitly type productData
@@ -46,7 +55,11 @@ const ReservationNewEdit: React.FC = () => {
                                 })
                             );
 
-                            setProduct({ ...productData, pictures: resolvedPictures });
+                            setProduct({
+                                name: productData.name || 'N/A',
+                                location: productData.location || 'N/A',
+                                pictures: resolvedPictures,
+                            });
                         }
                     }
                 }
@@ -61,21 +74,82 @@ const ReservationNewEdit: React.FC = () => {
         }
     }, [firestore, reservationId, storage]);
 
+    useEffect(() => {
+        const resolvePictures = async () => {
+            if (product.pictures?.length > 0) {
+                const resolvedPictures = await Promise.all(
+                    product.pictures.map(async (picture: string) => {
+                        if (picture.startsWith('products/')) {
+                            const storageRef = ref(storage, picture);
+                            return await getDownloadURL(storageRef);
+                        }
+                        return picture; // Return as is if it's an external URL
+                    })
+                );
+                setProduct((prevProduct) => ({ ...prevProduct, pictures: resolvedPictures }));
+            }
+        };
+
+        if (!reservationId && product.pictures?.length > 0) {
+            resolvePictures();
+        }
+    }, [product.pictures, reservationId, storage]);
+
+    useEffect(() => {
+        const fetchProductDetails = async () => {
+            if (firestore && reservation.productId) {
+                const productRef = doc(firestore, 'products', reservation.productId);
+                const productDoc = await getDoc(productRef);
+                if (productDoc.exists()) {
+                    const productData = productDoc.data() as { [key: string]: any };
+                    const resolvedPictures = await Promise.all(
+                        (productData.pictures || []).map(async (picture: string) => {
+                            if (picture.startsWith('products/')) {
+                                const storageRef = ref(storage, picture);
+                                return await getDownloadURL(storageRef);
+                            }
+                            return picture;
+                        })
+                    );
+
+                    setProduct({
+                        name: productData.name || 'N/A',
+                        location: productData.location || 'N/A',
+                        pictures: resolvedPictures,
+                    });
+                }
+            }
+        };
+
+        if (!reservationId && reservation.productId) {
+            fetchProductDetails();
+        }
+    }, [firestore, reservation.productId, reservationId, storage]);
+
     const handleSave = async () => {
-        if (firestore) {
+        if (firestore && currentUser) {
+            if (!reservation.productId) {
+                alert('Product ID is missing. Please select a valid product.');
+                return;
+            }
+
             const reservationRef = reservationId
                 ? doc(firestore, 'reservations', reservationId)
                 : doc(firestore, 'reservations', `${Date.now()}`); // Generate a new ID for new reservations
 
             const formattedReservation = {
                 ...reservation,
-                from: reservation.from ? new Date(reservation.from) : null,
-                to: reservation.to ? new Date(reservation.to) : null,
+                userId: currentUser.uid, // Ensure userId is set from currentUser
+                productId: doc(firestore, 'products', reservation.productId), // Reconstruct Firestore document reference
+                from: reservation.from ? Timestamp.fromDate(new Date(reservation.from)) : null, // Convert to Firestore Timestamp
+                to: reservation.to ? Timestamp.fromDate(new Date(reservation.to)) : null, // Convert to Firestore Timestamp
             };
 
             await setDoc(reservationRef, formattedReservation);
             alert('Reservation saved successfully!');
             navigate('/home');
+        } else {
+            alert('Failed to save reservation. Please ensure you are logged in.');
         }
     };
 
