@@ -11,7 +11,15 @@ const ReservationNewEdit: React.FC = () => {
     const navigate = useNavigate();
 
     const [reservation, setReservation] = useState<any>(location.state?.reservation || {}); // Initialize with state or empty object
-    const [product, setProduct] = useState<{ [key: string]: any }>({}); // Properly type product as an object
+    const [product, setProduct] = useState<{ [key: string]: any }>(
+        location.state?.reservation?.productId
+            ? {
+                  name: location.state?.reservation?.productName || 'N/A',
+                  location: location.state?.reservation?.productLocation || 'N/A',
+                  pictures: location.state?.reservation?.productPictures || [],
+              }
+            : {}
+    ); // Properly type product as an object
     const [editMode, setEditMode] = useState<boolean>(!reservationId); // Start in edit mode if no reservationId
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -61,6 +69,27 @@ const ReservationNewEdit: React.FC = () => {
             setLoading(false);
         }
     }, [firestore, reservationId, storage]);
+
+    useEffect(() => {
+        const resolvePictures = async () => {
+            if (product.pictures?.length > 0) {
+                const resolvedPictures = await Promise.all(
+                    product.pictures.map(async (picture: string) => {
+                        if (picture.startsWith('products/')) {
+                            const storageRef = ref(storage, picture);
+                            return await getDownloadURL(storageRef);
+                        }
+                        return picture; // Return as is if it's an external URL
+                    })
+                );
+                setProduct((prevProduct) => ({ ...prevProduct, pictures: resolvedPictures }));
+            }
+        };
+
+        if (!reservationId && product.pictures?.length > 0) {
+            resolvePictures();
+        }
+    }, [product.pictures, reservationId, storage]);
 
     const handleSave = async () => {
         if (firestore && currentUser) {

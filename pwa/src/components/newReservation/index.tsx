@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { collection, getDocs, query, where, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 const NewReservation: React.FC = () => {
@@ -55,19 +55,38 @@ const NewReservation: React.FC = () => {
         fetchProducts(categoryId);
     };
 
-    const handleProductClick = (product: any) => {
+    const handleProductClick = async (product: any) => {
         if (!currentUser) {
             alert("User not authenticated.");
             return;
         }
 
-        const newReservation = {
-            userId: currentUser.uid,
-            productId: product.id, // Pass the product ID
-            from: '',
-            to: '',
-        };
-        navigate(`/reservations/new`, { state: { reservation: newReservation } });
+        try {
+            // Fetch product details
+            const productRef = doc(firestore, 'products', product.id);
+            const productDoc = await getDoc(productRef);
+            if (productDoc.exists()) {
+                const productData = productDoc.data();
+
+                // Prepare the new reservation object
+                const newReservation = {
+                    userId: currentUser.uid,
+                    productId: product.id,
+                    productName: productData.name || 'N/A',
+                    productLocation: productData.location || 'N/A',
+                    productPictures: productData.pictures || [],
+                    from: '',
+                    to: '',
+                };
+
+                navigate(`/reservations/new`, { state: { reservation: newReservation } });
+            } else {
+                alert("Product details not found.");
+            }
+        } catch (error) {
+            console.error("Error fetching product details:", error);
+            alert("Failed to fetch product details.");
+        }
     };
 
     if (loading) {
