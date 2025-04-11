@@ -6,6 +6,7 @@ interface FirebaseContextType {
     currentUser: User | null;
     updateUserProfile: (data: { displayName: string }) => void;
     firestore: typeof firestore; // Add firestore to the context type
+    storage: typeof storage; // Add storage to the context type
 }
 
 export const FirebaseContext = createContext<FirebaseContextType | null>(null);
@@ -30,7 +31,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, []);
 
     return (
-        <FirebaseContext.Provider value={{ currentUser, updateUserProfile, firestore }}>
+        <FirebaseContext.Provider value={{ currentUser, updateUserProfile, firestore, storage }}>
             {children}
         </FirebaseContext.Provider>
     );

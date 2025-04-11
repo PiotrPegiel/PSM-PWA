@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc } from 'firebase/firestore';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
     const { firestore, currentUser } = useFirebase() || {};
     const [reservations, setReservations] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const navigate = useNavigate();
 
     // Form states
     const [categoryName, setCategoryName] = useState('');
@@ -166,13 +168,19 @@ const Home: React.FC = () => {
             {reservations.length > 0 ? (
                 <ul className="list-group mt-4">
                     {reservations.map(reservation => (
-                        <li key={reservation.id} className="list-group-item">
+                        <li
+                            key={reservation.id}
+                            className="list-group-item"
+                            onClick={() => navigate(`/reservations/${reservation.id}`)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <strong>Reservation ID:</strong> {reservation.id || 'N/A'} <br />
                             <strong>Product Name:</strong> {reservation.productData?.name || 'N/A'} <br />
                             <strong>Category:</strong> {reservation.categoryData?.name || 'N/A'} <br />
                             <strong>User ID:</strong> {reservation.userId || 'N/A'} <br />
                             <strong>From:</strong> {reservation.from?.seconds ? new Date(reservation.from.seconds * 1000).toLocaleString() : 'N/A'} <br />
-                            <strong>To:</strong> {reservation.to?.seconds ? new Date(reservation.to.seconds * 1000).toLocaleString() : 'N/A'}
+                            <strong>To:</strong> {reservation.to?.seconds ? new Date(reservation.to.seconds * 1000).toLocaleString() : 'N/A'} <br />
+                            <strong>Product Reference:</strong> {reservation.productId?.id || 'N/A'}
                         </li>
                     ))}
                 </ul>
