@@ -252,7 +252,7 @@ const ProductDetails: React.FC = () => {
 
     return (
         <div className="container text-center mt-5">
-            <h1>{editMode ? 'Edit Product' : 'Product Details'}</h1>
+            <h1>{editMode && !productId ? 'Add New Product' : editMode ? 'Edit Product' : 'Product Details'}</h1>
             <div className="form-group">
                 <label>Name:</label>
                 {editMode ? (
