@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Navigate, Link } from 'react-router-dom'
+import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { doSignInWithEmailAndPassword, doSignInWithGoogle } from '../../../firebase/auth'
 import { useAuth } from '../../../contexts/authContext'
 
@@ -30,15 +30,21 @@ const Login = () => {
         }
     }
 
+    let navigate = useNavigate(); 
+    const routeChange = () =>{ 
+    let path = `/register`; 
+    navigate(path);
+  }
+
     return (
         <div>
             {userLoggedIn && (<Navigate to={'/home'} replace={true} />)}
 
             <main className="w-full h-screen flex self-center place-content-center place-items-center">
-                <div className="w-96 text-gray-600 space-y-5 p-4 shadow-xl border rounded-xl">
+                <div className="w-96 text-gray-600 space-y-5 p-4 rounded-xl">
                     <div className="text-center">
                         <div className="mt-2">
-                            <h3 className="text-gray-800 text-xl font-semibold sm:text-2xl">Welcome Back</h3>
+                            <h3 className="text-gray-800 text-xl font-semibold sm:text-2xl">Log in</h3>
                         </div>
                     </div>
                     <form
@@ -79,12 +85,15 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={isSigningIn}
-                            className={`w-full px-4 py-2 text-white font-medium rounded-lg ${isSigningIn ? 'bg-gray-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-xl transition duration-300'}`}
+                            className={`w-full px-4 py-2 text-white font-medium rounded-lg ${isSigningIn ? 'bg-gray-300 cursor-not-allowed' : 'bg-stone-950 hover:bg-gray-900 hover:shadow-xl transition duration-300'}`}
                         >
                             {isSigningIn ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
-                    <p className="text-center text-sm">Don't have an account? <Link to={'/register'} className="hover:underline font-bold">Sign up</Link></p>
+                    <button
+                    className='w-full px-4 py-2 text-black font-medium border-2 rounded-lg bg-transparent hover:bg-gray-200 hover:shadow-xl transition duration-300'
+                        onClick={routeChange}
+                        >Register</button>
                     <div className='flex flex-row text-center w-full'>
                         <div className='border-b-2 mb-2.5 mr-2 w-full'></div><div className='text-sm font-bold w-fit'>OR</div><div className='border-b-2 mb-2.5 ml-2 w-full'></div>
                     </div>
