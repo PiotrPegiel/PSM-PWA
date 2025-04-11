@@ -5,6 +5,7 @@ import Categories from "./components/categories";
 import ProductsByCategory from './components/productsByCategory';
 import ProductDetails from "./components/productDetails";
 import UserRoles from "./components/userRoles";
+import ReservationNewEdit from './components/reservationNewEdit';
 
 import Header from "./components/header";
 import Home from "./components/home";
@@ -33,6 +34,8 @@ function App() {
     { path: '/categories/:categoryId/products/:productId', element: <ProtectedRoute element={<ProductDetails />} roles={["Admin", "SuperUser"]} /> },
     { path: '/categories/:categoryId/products/new', element: <ProtectedRoute element={<ProductDetails />} roles={["Admin", "SuperUser"]} /> },
     { path: "/user-roles", element: <ProtectedRoute element={<UserRoles />} roles={["Admin", "SuperUser"]} /> },
+    { path: '/reservations/new', element: <ProtectedRoute element={<ReservationNewEdit />} /> },
+    { path: '/reservations/:reservationId', element: <ProtectedRoute element={<ReservationNewEdit />} /> },
   ];
 
   let routesElement = useRoutes(routesArray);
