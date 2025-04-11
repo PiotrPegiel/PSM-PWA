@@ -6,6 +6,7 @@ import ProductsByCategory from './components/productsByCategory';
 import ProductDetails from "./components/productDetails";
 import UserRoles from "./components/userRoles";
 import ReservationNewEdit from './components/reservationNewEdit';
+import NewReservation from "./components/newReservation";
 
 import Header from "./components/header";
 import Home from "./components/home";
@@ -36,6 +37,7 @@ function App() {
     { path: "/user-roles", element: <ProtectedRoute element={<UserRoles />} roles={["Admin", "SuperUser"]} /> },
     { path: '/reservations/new', element: <ProtectedRoute element={<ReservationNewEdit />} /> },
     { path: '/reservations/:reservationId', element: <ProtectedRoute element={<ReservationNewEdit />} /> },
+    { path: '/new-reservation', element: <ProtectedRoute element={<NewReservation />} /> },
   ];
 
   let routesElement = useRoutes(routesArray);

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, DocumentReference } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 
 const ReservationNewEdit: React.FC = () => {
-    const { firestore, storage } = useFirebase() || {}; // Ensure storage is included in FirebaseContextType
+    const { firestore, storage, currentUser } = useFirebase() || {}; // Include currentUser from FirebaseContext
     const { reservationId } = useParams<{ reservationId: string }>();
+    const location = useLocation(); // Access the state passed via navigate
     const navigate = useNavigate();
 
-    const [reservation, setReservation] = useState<any>({});
+    const [reservation, setReservation] = useState<any>(location.state?.reservation || {}); // Initialize with state or empty object
     const [product, setProduct] = useState<{ [key: string]: any }>({}); // Properly type product as an object
     const [editMode, setEditMode] = useState<boolean>(!reservationId); // Start in edit mode if no reservationId
     const [loading, setLoading] = useState<boolean>(true);
@@ -32,7 +33,7 @@ const ReservationNewEdit: React.FC = () => {
                     });
 
                     // Fetch product details
-                    if (data.productId) {
+                    if (data.productId instanceof DocumentReference) {
                         const productDoc = await getDoc(data.productId);
                         if (productDoc.exists()) {
                             const productData = productDoc.data() as { [key: string]: any }; // Explicitly type productData
@@ -62,13 +63,20 @@ const ReservationNewEdit: React.FC = () => {
     }, [firestore, reservationId, storage]);
 
     const handleSave = async () => {
-        if (firestore) {
+        if (firestore && currentUser) {
+            if (!reservation.productId) {
+                alert('Product ID is missing. Please select a valid product.');
+                return;
+            }
+
             const reservationRef = reservationId
                 ? doc(firestore, 'reservations', reservationId)
                 : doc(firestore, 'reservations', `${Date.now()}`); // Generate a new ID for new reservations
 
             const formattedReservation = {
                 ...reservation,
+                userId: currentUser.uid, // Ensure userId is set from currentUser
+                productId: doc(firestore, 'products', reservation.productId), // Reconstruct Firestore document reference
                 from: reservation.from ? new Date(reservation.from) : null,
                 to: reservation.to ? new Date(reservation.to) : null,
             };
@@ -76,6 +84,8 @@ const ReservationNewEdit: React.FC = () => {
             await setDoc(reservationRef, formattedReservation);
             alert('Reservation saved successfully!');
             navigate('/home');
+        } else {
+            alert('Failed to save reservation. Please ensure you are logged in.');
         }
     };
 

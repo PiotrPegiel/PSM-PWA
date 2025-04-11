@@ -10,11 +10,6 @@ const Home: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const navigate = useNavigate();
 
-    // Form states
-    const [productName, setProductName] = useState('');
-    const [reservationFrom, setReservationFrom] = useState('');
-    const [reservationTo, setReservationTo] = useState('');
-
     // Fetch reservations and resolve references
     useEffect(() => {
         const fetchReservations = async () => {
@@ -75,35 +70,6 @@ const Home: React.FC = () => {
         fetchReservations();
     }, [firestore]);
 
-    // Add a new reservation with product and userId inputs
-    const addReservation = async () => {
-        if (firestore) {
-            const productRef = doc(firestore, 'products', productName); // Use productName as product ID
-            const userId = currentUser?.uid || 'unknown-user-id'; // Use current user ID or fallback
-            await addDoc(collection(firestore, 'reservations'), {
-                productId: productRef,
-                userId: userId,
-                from: new Date(reservationFrom),
-                to: new Date(reservationTo),
-            });
-            alert('Reservation added!');
-        }
-    };
-
-    // Add hardcoded reservation
-    const addHardcodedReservation = async () => {
-        if (firestore && currentUser) {
-            const productRef = doc(firestore, 'products', 'hardcoded-product-id'); // Replace with actual product ID
-            await addDoc(collection(firestore, 'reservations'), {
-                productId: productRef,
-                userId: currentUser.uid,
-                from: new Date(),
-                to: new Date(new Date().getTime() + 24 * 60 * 60 * 1000), // 1 day later
-            });
-            alert('Hardcoded reservation added!');
-        }
-    };
-
     if (loading) {
         return <div>Loading reservations...</div>;
     }
@@ -135,41 +101,8 @@ const Home: React.FC = () => {
                 <p>No reservations found.</p>
             )}
 
-            {/* Form for adding a reservation */}
-            <div className="mt-4">
-                <h3>Add Reservation</h3>
-                <input
-                    type="text"
-                    placeholder="Product ID"
-                    value={productName} // Use productName as product ID
-                    onChange={(e) => setProductName(e.target.value)}
-                    className="form-control mb-2"
-                />
-                <input
-                    type="text"
-                    placeholder="User ID"
-                    value={currentUser?.uid || ''} // Use current user ID
-                    onChange={(e) => console.log('User ID is hardcoded for one button')}
-                    className="form-control mb-2"
-                />
-                <input
-                    type="datetime-local"
-                    placeholder="From"
-                    value={reservationFrom}
-                    onChange={(e) => setReservationFrom(e.target.value)}
-                    className="form-control mb-2"
-                />
-                <input
-                    type="datetime-local"
-                    placeholder="To"
-                    value={reservationTo}
-                    onChange={(e) => setReservationTo(e.target.value)}
-                    className="form-control mb-2"
-                />
-                <button onClick={addReservation} className="btn btn-primary me-2">Add Reservation</button>
-                <button onClick={addHardcodedReservation} className="btn btn-secondary">Add Hardcoded Reservation</button>
+                <button onClick={() => navigate('/new-reservation')} className="btn btn-success mt-3">New Reservation</button>
             </div>
-        </div>
     );
 };
 
