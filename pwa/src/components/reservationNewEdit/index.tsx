@@ -40,7 +40,7 @@ const ReservationNewEdit: React.FC = () => {
                             : '',
                     });
 
-                    // Fetch product details
+                    // Fetch product details dynamically
                     if (data.productId instanceof DocumentReference) {
                         const productDoc = await getDoc(data.productId);
                         if (productDoc.exists()) {
@@ -55,7 +55,11 @@ const ReservationNewEdit: React.FC = () => {
                                 })
                             );
 
-                            setProduct({ ...productData, pictures: resolvedPictures });
+                            setProduct({
+                                name: productData.name || 'N/A',
+                                location: productData.location || 'N/A',
+                                pictures: resolvedPictures,
+                            });
                         }
                     }
                 }
@@ -90,6 +94,37 @@ const ReservationNewEdit: React.FC = () => {
             resolvePictures();
         }
     }, [product.pictures, reservationId, storage]);
+
+    useEffect(() => {
+        const fetchProductDetails = async () => {
+            if (firestore && reservation.productId) {
+                const productRef = doc(firestore, 'products', reservation.productId);
+                const productDoc = await getDoc(productRef);
+                if (productDoc.exists()) {
+                    const productData = productDoc.data() as { [key: string]: any };
+                    const resolvedPictures = await Promise.all(
+                        (productData.pictures || []).map(async (picture: string) => {
+                            if (picture.startsWith('products/')) {
+                                const storageRef = ref(storage, picture);
+                                return await getDownloadURL(storageRef);
+                            }
+                            return picture;
+                        })
+                    );
+
+                    setProduct({
+                        name: productData.name || 'N/A',
+                        location: productData.location || 'N/A',
+                        pictures: resolvedPictures,
+                    });
+                }
+            }
+        };
+
+        if (!reservationId && reservation.productId) {
+            fetchProductDetails();
+        }
+    }, [firestore, reservation.productId, reservationId, storage]);
 
     const handleSave = async () => {
         if (firestore && currentUser) {

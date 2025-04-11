@@ -62,30 +62,18 @@ const NewReservation: React.FC = () => {
         }
 
         try {
-            // Fetch product details
-            const productRef = doc(firestore, 'products', product.id);
-            const productDoc = await getDoc(productRef);
-            if (productDoc.exists()) {
-                const productData = productDoc.data();
+            // Prepare the new reservation object
+            const newReservation = {
+                userId: currentUser.uid,
+                productId: product.id,
+                from: '',
+                to: '',
+            };
 
-                // Prepare the new reservation object
-                const newReservation = {
-                    userId: currentUser.uid,
-                    productId: product.id,
-                    productName: productData.name || 'N/A',
-                    productLocation: productData.location || 'N/A',
-                    productPictures: productData.pictures || [],
-                    from: '',
-                    to: '',
-                };
-
-                navigate(`/reservations/new`, { state: { reservation: newReservation } });
-            } else {
-                alert("Product details not found.");
-            }
+            navigate(`/reservations/new`, { state: { reservation: newReservation } });
         } catch (error) {
-            console.error("Error fetching product details:", error);
-            alert("Failed to fetch product details.");
+            console.error("Error preparing reservation:", error);
+            alert("Failed to prepare reservation.");
         }
     };
 
