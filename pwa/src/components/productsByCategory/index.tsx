@@ -94,75 +94,79 @@ const ProductsByCategory: React.FC = () => {
     }
 
     return (
-
-    <div className="container w-full max-w-md pt-8 px-2">
-        <div className="flex flex-grow w-full max-w-md mb-2 items-center">
-            {editMode ? (
-                <div className="w-full space-y-2">
-                    <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded px-2 py-1"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                    />
-                    <div className="flex space-x-2">
-                        <button
-                            className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                            onClick={handleSaveCategoryName}
-                        >
-                            Save
-                        </button>
-                        <button
-                            className="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                            onClick={handleDeleteCategory}
-                        >
-                            Delete
-                        </button>
+        <div className="container w-full max-w-md pt-8 px-2">
+            <div className="flex flex-grow w-full max-w-md mb-2 items-center">
+                {editMode ? (
+                    <div className="w-full flex space-x-5 items-center">
+                        <input
+                            type="text"
+                            className="flex-grow border border-gray-300 rounded px-2 py-1"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                        />
+                        <div className="flex space-x-5">
+                            <img
+                                className="w-5 h-5 hover:cursor-pointer"
+                                src="/assets/icons/fi-rr-check.svg"
+                                onClick={handleSaveCategoryName}
+                            />
+                            <img
+                                className="w-5 h-5 hover:cursor-pointer"
+                                src="/assets/icons/fi-rr-cross.svg"
+                                onClick={() => setEditMode(false)}
+                            />
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <div className="w-full max-w-md flex justify-center items-center space-x-4">
-                    <div className="relative w-full max-w-md mb-6">
-                        <button
-                        className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
-                        onClick={() => navigate(-1)} 
-                        >
-                            <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
-                        </button>
-                        <h1 className="text-2xl font-bold text-center">{categoryName}</h1>
+                ) : (
+                    <div className="w-full flex justify-center items-center space-x-4">
+                        <div className="relative w-full max-w-md mb-6">
+                            <button
+                            className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
+                            onClick={() => navigate(-1)} 
+                            >
+                                <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                            </button>
+                            
+                            <h1 className="text-2xl font-bold text-center">{categoryName}</h1>
+                            <img
+                                src="/assets/icons/fi-rr-edit.svg"
+                                className="w-5 h-5 absolute right-0 top-1/2 transform -translate-y-1/2 hover:cursor-pointer"
+                                onClick={() => setEditMode(true)}
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+            <div className="space-y-4 mt-5">
+                {products.map(product => (
+                    <div
+                        key={product.id}
+                        className="flex justify-between items-center border-2 border-black rounded-[8px] p-2 hover:cursor-pointer"
+                        onClick={() => navigate(`/categories/${categoryId}/products/${product.id}`)}
+                    >
+                        <div className="w-5 h-5"></div>
+                        <p className='font-semibold'>{product.name}</p>
                         <img
-                            src="/assets/icons/fi-rr-edit.svg"
-                            className="w-5 h-5 cursor-pointer absolute right-0 top-1/2 transform -translate-y-1/2"
-                            onClick={() => setEditMode(true)}
+                            src="/assets/icons/fi-rr-trash-xmark.svg"
+                            alt="Delete"
+                            className="w-5 h-5 cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteProduct(product.id, product.pictures || []);
+                            }}
                         />
                     </div>
-                    
-                </div>
-            )}
+                ))}
+            </div>
+            <button
+                className="bg-black text-white w-full py-2 mt-4 rounded-[8px]"
+                onClick={() => navigate(`/categories/${categoryId}/products/new`)}
+            >
+                Add
+            </button>
         </div>
-        <div className="space-y-4">
-            {products.map(product => (
-                <div
-                    key={product.id}
-                    className="flex w-full max-w-md justify-center items-center border-2 border-black rounded-[8px] p-2 hover:cursor-pointer"
-                    onClick = {() => navigate(`/categories/${categoryId}/products/${product.id}`)}
-                >
-                        <p>{product.name}</p>
-                </div>
-            ))}
-        </div>
-        <button
-            className="bg-black text-white w-full py-2 mt-4 rounded-[8px] w-full max-w-md"
-            onClick={() => navigate(`/categories/${categoryId}/products/new`)}
-        >
-            Add
-        </button>
-
-    </div>
     );
 };
 
 export default ProductsByCategory;
-
-
 
