@@ -339,7 +339,7 @@ const ReservationNewEdit: React.FC = () => {
                             />
                         </div>
                     ) : (
-                        <p className="text-gray-800">{reservation.from.to || 'N/A'}</p>
+                        <p className="text-gray-800">{reservation.from || 'N/A'}</p>
                     )}
                 </div>
                 {/* to date */}
