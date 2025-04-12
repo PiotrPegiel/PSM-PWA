@@ -173,6 +173,8 @@ const ReservationNewEdit: React.FC = () => {
 
             const fromDate = new Date(reservation.from);
             const toDate = new Date(reservation.to);
+            const currentDate = new Date();
+
             if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
                 alert('Invalid date or time format. Please correct it.');
                 return;
@@ -180,6 +182,11 @@ const ReservationNewEdit: React.FC = () => {
 
             if (toDate <= fromDate) {
                 alert('"To" datetime must be later than "From" datetime.');
+                return;
+            }
+
+            if (toDate <= currentDate) {
+                alert('"To" datetime must be in the future.');
                 return;
             }
 
@@ -242,6 +249,23 @@ const ReservationNewEdit: React.FC = () => {
         const newDateTime = type === 'date' ? `${value}T${time || ''}` : `${date || ''}T${value}`;
         setReservation({ ...reservation, [field]: newDateTime || '' }); // Ensure empty string if no value
     };
+
+    // Helper function to format a Date object to match the localized format
+    const formatDateForComparison = (date: Date): string => {
+        return date.toLocaleString('default', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        });
+    };
+
+    const isPastReservation = reservation.to
+        ? new Date(reservation.to).getTime() <
+        new Date(formatDateForComparison(new Date())).getTime()
+        : false;
 
     if (loading) {
         return <div>Loading...</div>;
@@ -338,22 +362,25 @@ const ReservationNewEdit: React.FC = () => {
                     <div className="flex flex-column space-x-4 mt-4">
                         <button
                             className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-                            onClick={() => setEditMode(true)}
                         >
                             View On Map
                         </button>
-                        <button
-                            className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-                            onClick={() => setEditMode(true)}
-                        >
-                            Edit Reservation
-                        </button>
-                        <button
-                            className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
-                            onClick={handleDelete}
-                        >
-                            Cancel Reservation
-                        </button>
+                        {!isPastReservation && (
+                            <>
+                                <button
+                                    className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                                    onClick={() => setEditMode(true)}
+                                >
+                                    Edit Reservation
+                                </button>
+                                <button
+                                    className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
+                                    onClick={handleDelete}
+                                >
+                                    Cancel Reservation
+                                </button>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
