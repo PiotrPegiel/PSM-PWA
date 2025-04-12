@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { firestore } from "../../firebase/firebase";
 import Header from "../header";
+import { useNavigate } from "react-router-dom";
 
 interface UserRole {
   userId: string;
@@ -13,6 +14,9 @@ interface UserRole {
 const UserRoles: React.FC = () => {
   const [users, setUsers] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate(); 
+  
 
   useEffect(() => {
     const fetchUserRoles = async () => {
@@ -50,9 +54,17 @@ const UserRoles: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen  p-12">
+    <div className="flex flex-col items-center min-h-screen p-12">
       {<Header />}
-      <h1 className="text-2xl font-bold text-center mb-6">Users</h1>
+      <div className="relative w-full max-w-md mb-6">
+                <button
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
+                    onClick={() => navigate(-1)} 
+                >
+                    <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                </button>
+                <h1 className="text-2xl font-bold text-center">Users</h1>
+            </div>
       <div className="space-y-4">
         {users.map((user) => (
           <div

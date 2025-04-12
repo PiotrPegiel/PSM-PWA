@@ -17,7 +17,6 @@ declare module 'leaflet' {
 }
 
 
-
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
     iconUrl: require('leaflet/dist/images/marker-icon.png'),
@@ -141,13 +140,27 @@ const MapView: React.FC = () => {
     useEffect(() => {
         if (mapRef.current && currentLocation && latitude && longitude) {
             const map = mapRef.current;
+    
             const routingControl = L.Routing.control({
                 waypoints: [
                     L.latLng(currentLocation.lat, currentLocation.lng),
                     L.latLng(latitude, longitude),
                 ],
                 routeWhileDragging: true,
-            }).addTo(map);
+                createMarker: () => null, // Disable default markers
+                addWaypoints: false, // Prevent adding waypoints
+                show: false, // Disable instructions panel
+            });
+    
+            // Remove the instructions container
+            routingControl.on('routesfound', () => {
+                const instructionsContainer = document.querySelector('.leaflet-routing-container');
+                if (instructionsContainer) {
+                    instructionsContainer.remove();
+                }
+            });
+    
+            routingControl.addTo(map);
     
             return () => {
                 map.removeControl(routingControl);
