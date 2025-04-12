@@ -111,13 +111,13 @@ const History: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 p-12 text-center">
-            <h1 className="text-2xl font-bold text-center mb-6">Reservations History</h1>
+            <h1 className="text-2xl font-semibold text-center mb-6">Reservations History</h1>
             {reservations.length > 0 ? (
                 <div className="flex flex-col items-center space-y-4">
                     {reservations.map(reservation => (
                         <div
                             key={reservation.id}
-                            className="w-full max-w-md border rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition"
+                            className="w-full max-w-md border-2 border-black rounded-[8px] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                             onClick={() => navigate(`/reservations/${reservation.id}`)}
                         >
                             <h2 className="text-lg font-semibold">{reservation.productData?.name || 'N/A'}</h2>
