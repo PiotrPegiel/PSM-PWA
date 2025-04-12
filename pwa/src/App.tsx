@@ -17,6 +17,7 @@ import Profile from "./components/profile";
 import { useAuth } from "./contexts/authContext";
 import { useRoutes, Navigate } from "react-router-dom";
 import Admin from "./components/admin";
+import MapView from "./components/viewMap";
 
 function App() {
   const { userLoggedIn, currentUser } = useAuth();
@@ -42,6 +43,7 @@ function App() {
     { path: "/user-roles", element: <ProtectedRoute element={<UserRoles />} roles={["Admin", "SuperUser"]} /> },
     { path: '/reservations/new', element: <ProtectedRoute element={<ReservationNewEdit />} /> },
     { path: '/reservations/:reservationId', element: <ProtectedRoute element={<ReservationNewEdit />} /> },
+    { path: '/reservations/:reservationId/map', element: <ProtectedRoute element={<MapView />} /> },
     { path: '/new-reservation', element: <ProtectedRoute element={<NewReservation />} /> },
     { path: "/history", element: <ProtectedRoute element={<History />} /> },
   ];

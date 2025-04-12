@@ -145,29 +145,4 @@ const ProductsByCategory: React.FC = () => {
 export default ProductsByCategory;
 
 
-// </div>
-// {products.length > 0 ? (
-//     <ul className="list-group mt-4">
-//         {products.map(product => (
-//             <li key={product.id} className="list-group-item">
-//                 <Link to={`/categories/${categoryId}/products/${product.id}`}>
-//                     <strong>Name:</strong> {product.name}
-//                 </Link>
-//                 <br />
-//                 <strong>Location:</strong> {product.location?._lat !== undefined && product.location?._long !== undefined
-//                     ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
-//                     : typeof product.location === 'string'
-//                     ? product.location
-//                     : 'N/A'}
-//                 <br />
-//                 <strong>Pictures:</strong> {product.pictures?.join(', ') || 'N/A'}
-//             </li>
-//         ))}
-//     </ul>
-// ) : (
-//     <p>No products found for this category.</p>
-// )}
-// <Link to={`/categories/${categoryId}/products/new`} className="btn btn-primary mt-4">
-//     Add Product
-// </Link>
-// </div>
+
