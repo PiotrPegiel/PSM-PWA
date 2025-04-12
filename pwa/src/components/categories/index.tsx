@@ -84,8 +84,8 @@ const Categories: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center min-h-screen  p-12 pt-16">
-            <div className="relative w-full max-w-md mb-6">
+        <div className="flex flex-col items-center min-h-screen p-2  ">
+            <div className="relative w-full max-w-md mb-6 mt-6">
                 <button
                     className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
                     onClick={() => navigate(-1)} 
