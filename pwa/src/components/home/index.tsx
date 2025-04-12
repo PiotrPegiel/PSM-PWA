@@ -97,8 +97,9 @@ const Home: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto text-center px-4 p-12 font-inter">
-            {<Header />}
+
+        <div className="container mx-auto text-center px-4 p-12 font-inter min-h-screen overflow-y-auto">
+
             <h1 className="text-2xl font-semibold mb-6">Current Reservations</h1>
             <button
                 onClick={() => navigate('/new-reservation')}
