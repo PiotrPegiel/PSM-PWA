@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, getDoc, query, where, Timestamp, DocumentReference } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import Header from "../header";
 
 const formatDate = (timestamp: Timestamp): string => {
     const date = timestamp.toDate();
@@ -111,6 +112,7 @@ const History: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 p-12 text-center">
+            {<Header />}
             <h1 className="text-2xl font-semibold text-center mb-6">Reservations History</h1>
             {reservations.length > 0 ? (
                 <div className="flex flex-col items-center space-y-4">
