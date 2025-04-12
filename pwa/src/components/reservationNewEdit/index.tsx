@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { doc, getDoc, setDoc, deleteDoc, DocumentReference, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, DocumentReference, Timestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 
 const ReservationNewEdit: React.FC = () => {
@@ -147,9 +147,55 @@ const ReservationNewEdit: React.FC = () => {
     }, [firestore, reservation.productId, reservationId, storage]);
 
     const handleSave = async () => {
-        if (firestore && currentUser) {
+        try {
+            if (!firestore || !currentUser) {
+                alert('Failed to save reservation. Please ensure you are logged in.');
+                return;
+            }
+
             if (!reservation.productId) {
                 alert('Product ID is missing. Please select a valid product.');
+                return;
+            }
+
+            if (!reservation.from || !reservation.to) {
+                alert('Please set both "From" and "To" date and time.');
+                return;
+            }
+
+            const fromParts = reservation.from.split('T');
+            const toParts = reservation.to.split('T');
+
+            if (fromParts.length < 2 || toParts.length < 2 || !fromParts[0] || !fromParts[1] || !toParts[0] || !toParts[1]) {
+                alert('Both date and time must be set for "From" and "To".');
+                return;
+            }
+
+            const fromDate = new Date(reservation.from);
+            const toDate = new Date(reservation.to);
+            if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+                alert('Invalid date or time format. Please correct it.');
+                return;
+            }
+
+            if (toDate <= fromDate) {
+                alert('"To" datetime must be later than "From" datetime.');
+                return;
+            }
+
+            // Check for overlapping reservations
+            const reservationsRef = collection(firestore, 'reservations');
+            const q = query(
+                reservationsRef,
+                where('productId', '==', doc(firestore, 'products', reservation.productId)),
+                where('to', '>', Timestamp.fromDate(fromDate)),
+                where('from', '<', Timestamp.fromDate(toDate))
+            );
+
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                alert('The selected product is already reserved for the chosen time period.');
                 return;
             }
 
@@ -168,8 +214,9 @@ const ReservationNewEdit: React.FC = () => {
             await setDoc(reservationRef, formattedReservation);
             alert('Reservation saved successfully!');
             navigate('/home');
-        } else {
-            alert('Failed to save reservation. Please ensure you are logged in.');
+        } catch (error) {
+            console.error('Error saving reservation:', error);
+            alert('An error occurred while saving the reservation. Please try again.');
         }
     };
 
@@ -193,7 +240,7 @@ const ReservationNewEdit: React.FC = () => {
     const handleDateTimeChange = (field: string, type: 'date' | 'time', value: string) => {
         const [date, time] = (reservation[field] || '').split('T');
         const newDateTime = type === 'date' ? `${value}T${time || ''}` : `${date || ''}T${value}`;
-        setReservation({ ...reservation, [field]: newDateTime });
+        setReservation({ ...reservation, [field]: newDateTime || '' }); // Ensure empty string if no value
     };
 
     if (loading) {
@@ -205,8 +252,8 @@ const ReservationNewEdit: React.FC = () => {
             <h1 className="text-xl font-bold mb-6">
                 {editMode && !reservationId ? 'New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
             </h1>
-            <div className="w-full max-w-md  p-6 rounded-lg">
-                {/* picturea carousel */}
+            <div className="w-full max-w-md p-6 rounded-lg">
+                {/* picture carousel */}
                 <div className="mb-4">
                     {product.pictures?.length > 0 ? (
                         <div className="relative w-full max-w-md">
@@ -232,8 +279,8 @@ const ReservationNewEdit: React.FC = () => {
                         <p className="text-gray-500">No pictures available</p>
                     )}
                 </div>
-                                {/* product name */}
-                                <div className="mb-4">
+                {/* product name */}
+                <div className="mb-4">
                     <p className="text-gray-800">{product.name || 'N/A'}</p>
                 </div>
                 {/* from date */}
