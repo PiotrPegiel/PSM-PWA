@@ -5,17 +5,21 @@
 /pwa/node_modules
 /.pnp
 .pnp.js
-
+/build
 # testing
 /coverage
 
 # production
-/build
+pwa/build
 
 # misc
 .DS_Store
 
-
+.github/
+pwa/.firebaserc
+pwa/.gitignore
+pwa/apphosting.yaml
+pwa/firebase.json
 
 
 #env

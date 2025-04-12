@@ -53,7 +53,7 @@ function App() {
   return (
     <>
       {userLoggedIn && <Header />}
-      <div className="w-full h-screen flex flex-col">{routesElement}</div>
+      <div className="w-full flex flex-col pb-6">{routesElement}</div>
     </>
   );
 }
