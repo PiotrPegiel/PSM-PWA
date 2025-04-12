@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { Navigate, Link, useNavigate } from 'react-router-dom'
-import { doSignInWithEmailAndPassword, doSignInWithGoogle } from '../../../firebase/auth'
-import { useAuth } from '../../../contexts/authContext'
+import React, { useState } from 'react';
+import { Navigate, Link } from 'react-router-dom';
+import { doSignInWithEmailAndPassword, doSignInWithGoogle } from '../../../firebase/auth';
+import { useAuth } from '../../../contexts/authContext';
 
 const Login = () => {
     const { userLoggedIn } = useAuth() as { userLoggedIn: boolean }
@@ -30,77 +30,65 @@ const Login = () => {
         }
     }
 
-    let navigate = useNavigate(); 
-    const routeChange = () =>{ 
-    let path = `/register`; 
-    navigate(path);
-  }
-
     return (
         <div>
-            {userLoggedIn && (<Navigate to={'/home'} replace={true} />)}
+            {userLoggedIn && <Navigate to="/home" replace />}
 
-            <main className="w-full h-screen flex self-center place-content-center place-items-center">
-                <div className="w-96 text-gray-600 space-y-5 p-4 rounded-xl">
-                    <div className="text-center">
-                        <div className="mt-2">
-                            <h3 className="text-gray-800 text-xl font-semibold sm:text-2xl">Log in</h3>
-                        </div>
-                    </div>
-                    <form
-                        onSubmit={onSubmit}
-                        className="space-y-5"
-                    >
+            <main className="w-full h-screen flex items-center justify-center bg-white" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <div className="w-full max-w-md p-6">
+                    <h1 className="text-[24px] font-semibold text-center mb-8">
+                        Rezervix
+                    </h1>
+                    <h2 className="text-lg font-semibold text-center mb-4">Log in</h2>
+                    <form onSubmit={onSubmit} className="space-y-4">
                         <div>
-                            <label className="text-sm text-gray-600 font-bold">
-                                Email
-                            </label>
                             <input
                                 type="email"
-                                autoComplete='email'
+                                placeholder="email@domain.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
-                                value={email} onChange={(e) => { setEmail(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-indigo-600 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
-
-
                         <div>
-                            <label className="text-sm text-gray-600 font-bold">
-                                Password
-                            </label>
                             <input
                                 type="password"
-                                autoComplete='current-password'
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
-                                value={password} onChange={(e) => { setPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-indigo-600 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
-
-                        {errorMessage && (
-                            <span className='text-red-600 font-bold'>{errorMessage}</span>
-                        )}
-
+                        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                         <button
                             type="submit"
                             disabled={isSigningIn}
-                            className={`w-full px-4 py-2 text-white font-medium rounded-lg ${isSigningIn ? 'bg-gray-300 cursor-not-allowed' : 'bg-stone-950 hover:bg-gray-900 hover:shadow-xl transition duration-300'}`}
+                            className={`w-full py-2 text-white font-medium rounded-[8px] ${
+                                isSigningIn
+                                    ? 'bg-gray-300 cursor-not-allowed'
+                                    : 'bg-black hover:bg-gray-800'
+                            }`}
                         >
                             {isSigningIn ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
                     <button
-                    className='w-full px-4 py-2 text-black font-medium border-2 rounded-lg bg-transparent hover:bg-gray-200 hover:shadow-xl transition duration-300'
-                        onClick={routeChange}
-                        >Register</button>
-                    <div className='flex flex-row text-center w-full'>
-                        <div className='border-b-2 mb-2.5 mr-2 w-full'></div><div className='text-sm font-bold w-fit'>OR</div><div className='border-b-2 mb-2.5 ml-2 w-full'></div>
+                        onClick={() => window.location.href = '/register'}
+                        className="w-full mt-4 py-2 border-2 border-black text-black font-medium rounded-[8px] hover:bg-gray-100"
+                    >
+                        Register
+                    </button>
+                    <div className="flex items-center my-4">
+                        <hr className="flex-grow border-gray-300" />
+                        <span className="px-2 text-sm text-gray-500">or</span>
+                        <hr className="flex-grow border-gray-300" />
                     </div>
                     <button
                         disabled={isSigningIn}
-                        onClick={(e) => { onGoogleSignIn(e) }}
-                        className={`w-full flex items-center justify-center gap-x-3 py-2.5 border rounded-lg text-sm font-medium  ${isSigningIn ? 'cursor-not-allowed' : 'hover:bg-gray-100 transition duration-300 active:bg-gray-100'}`}>
+                        onClick={onGoogleSignIn}
+                        className={`w-full flex items-center justify-center gap-x-3 py-2.5 rounded-[8px] text-sm font-medium bg-[#EEEEEE] ${isSigningIn ? 'cursor-not-allowed' : 'hover:bg-gray-100 transition duration-300 active:bg-gray-100'}`}>
                         <svg className="w-5 h-5" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_17_40)">
                                 <path d="M47.532 24.5528C47.532 22.9214 47.3997 21.2811 47.1175 19.6761H24.48V28.9181H37.4434C36.9055 31.8988 35.177 34.5356 32.6461 36.2111V42.2078H40.3801C44.9217 38.0278 47.532 31.8547 47.532 24.5528Z" fill="#4285F4" />
@@ -119,7 +107,7 @@ const Login = () => {
                 </div>
             </main>
         </div>
-    )
-}
+    );
+};
 
-export default Login
+export default Login;
