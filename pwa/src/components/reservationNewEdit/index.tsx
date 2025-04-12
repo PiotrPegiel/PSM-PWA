@@ -22,6 +22,8 @@ const ReservationNewEdit: React.FC = () => {
     ); // Properly type product as an object
     const [editMode, setEditMode] = useState<boolean>(!reservationId); // Start in edit mode if no reservationId
     const [loading, setLoading] = useState<boolean>(true);
+    const [selectedPicture, setSelectedPicture] = useState<string | null>(null); // State for the selected picture
+
 
     useEffect(() => {
         const fetchReservation = async () => {
@@ -162,89 +164,123 @@ const ReservationNewEdit: React.FC = () => {
         }
     };
 
+    const handlePictureClick = (picture: string) => {
+        setSelectedPicture(picture); // Set the clicked picture as the selected picture
+    };
+
+    const closeModal = () => {
+        setSelectedPicture(null); // Close the modal by setting the selected picture to null
+    };
+
     if (loading) {
         return <div>Loading...</div>;
     }
 
     return (
-        <div className="container text-center mt-5">
-            <h1>{editMode && !reservationId ? 'Add New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}</h1>
-            <div className="form-group">
-                <label>Product Name:</label>
-                <p>{product.name || 'N/A'}</p>
-            </div>
-            <div className="form-group">
-                <label>Product Location:</label>
-                <p>
-                    {product.location?._lat !== undefined && product.location?._long !== undefined
-                        ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
-                        : typeof product.location === 'string'
-                        ? product.location
-                        : 'N/A'}
-                </p>
-            </div>
-            <div className="form-group">
-                <label>Product Pictures:</label>
-                {product.pictures?.length > 0 ? (
-                    <div id="carouselExample" className="carousel slide" data-bs-ride="carousel">
-                        <div className="carousel-inner">
+        <div className="flex flex-col items-center min-h-screen p-6">
+            <h1 className="text-xl font-bold mb-6">
+                {editMode && !reservationId ? 'Add New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
+            </h1>
+            <div className="w-full max-w-md  p-6 rounded-lg">
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Name:</label>
+                    <p className="text-gray-800">{product.name || 'N/A'}</p>
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Location:</label>
+                    <p className="text-gray-800">
+                        {product.location?._lat !== undefined && product.location?._long !== undefined
+                            ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
+                            : typeof product.location === 'string'
+                            ? product.location
+                            : 'N/A'}
+                    </p>
+                </div>
+                <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Product Pictures:</label>
+                    {product.pictures?.length > 0 ? (
+                        <div className="flex space-x-2 overflow-x-auto">
                             {product.pictures.map((picture: string, index: number) => (
-                                <div key={index} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
-                                    <img src={picture} className="d-block w-100" alt={`Product ${index}`} />
-                                </div>
+                                <img
+                                    key={index}
+                                    src={picture}
+                                    alt={`Product ${index}`}
+                                    className="w-24 h-24 object-cover rounded-md shadow-sm cursor-pointer"
+                                    onClick={() => handlePictureClick(picture)} // Open modal on click
+                                />
                             ))}
                         </div>
-                        <button className="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                            <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span className="visually-hidden">Previous</span>
+                    ) : (
+                        <p className="text-gray-500">No pictures available</p>
+                    )}
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">From:</label>
+                    {editMode ? (
+                        <input
+                            type="datetime-local"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={reservation.from}
+                            onChange={(e) => setReservation({ ...reservation, from: e.target.value })}
+                        />
+                    ) : (
+                        <p className="text-gray-800">{reservation.from || 'N/A'}</p>
+                    )}
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">To:</label>
+                    {editMode ? (
+                        <input
+                            type="datetime-local"
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={reservation.to}
+                            onChange={(e) => setReservation({ ...reservation, to: e.target.value })}
+                        />
+                    ) : (
+                        <p className="text-gray-800">{reservation.to || 'N/A'}</p>
+                    )}
+                </div>
+                {editMode ? (
+                    <button
+                        className="w-full bg-stone-950 text-white py-2 rounded-lg mt-4 hover:bg-gray-900"
+                        onClick={handleSave}
+                    >
+                        Add Reservation
+                    </button>
+                ) : (
+                    <div className="flex space-x-4 mt-4">
+                        <button
+                            className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                            onClick={() => setEditMode(true)}
+                        >
+                            Edit
                         </button>
-                        <button className="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                            <span className="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span className="visually-hidden">Next</span>
+                        <button
+                            className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
+                            onClick={handleDelete}
+                        >
+                            Delete
                         </button>
                     </div>
-                ) : (
-                    <p>No pictures available</p>
                 )}
             </div>
-            <div className="form-group">
-                <label>From:</label>
-                {editMode ? (
-                    <input
-                        type="datetime-local"
-                        className="form-control"
-                        value={reservation.from}
-                        onChange={(e) => setReservation({ ...reservation, from: e.target.value })}
-                    />
-                ) : (
-                    <p>{reservation.from || 'N/A'}</p>
-                )}
-            </div>
-            <div className="form-group">
-                <label>To:</label>
-                {editMode ? (
-                    <input
-                        type="datetime-local"
-                        className="form-control"
-                        value={reservation.to}
-                        onChange={(e) => setReservation({ ...reservation, to: e.target.value })}
-                    />
-                ) : (
-                    <p>{reservation.to || 'N/A'}</p>
-                )}
-            </div>
-            {editMode ? (
-                <button className="btn btn-success mt-3" onClick={handleSave}>
-                    Save
-                </button>
-            ) : (
-                <div className="mt-3">
-                    <button className="btn btn-primary me-2" onClick={() => setEditMode(true)}>
-                        Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={handleDelete}>
-                        Delete
-                    </button>
+
+            {/* Modal for displaying the selected picture */}
+            {selectedPicture && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="relative bg-white rounded-lg shadow-lg p-4">
+                        <button
+                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                            onClick={closeModal}
+                        >
+                            ✖
+                        </button>
+                        <img
+                            src={selectedPicture}
+                            alt="Selected"
+                            className="max-w-full max-h-[80vh] object-contain rounded-md"
+                        />
+                    </div>
                 </div>
             )}
         </div>

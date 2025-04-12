@@ -87,64 +87,58 @@ const ProductsByCategory: React.FC = () => {
 
     return (
         <div className="container mx-auto p-14">
-            <div className="flex items-center mb-4">
-                {/* <button
-                    className="text-gray-500 hover:text-gray-700 mr-4"
-                    onClick={() => navigate(-1)}
-                >
-                    &larr;
-                </button> */}
-                {editMode ? (
-                    <input
-                        type="text"
-                        className="flex-grow border border-gray-300 rounded px-2 py-1 pr-2"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                    />
-                ) : (
-                    <h1 className="text-xl font-bold flex-grow">{categoryName}</h1>
-                )}
-                {editMode ? (
-                    <div className="flex space-x-2 pl-2">
-                        <button
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                            onClick={handleSaveCategoryName}
-                        >
-                            Save
-                        </button>
-                        <button
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                            onClick={handleDeleteCategory}
-                        >
-                            Delete
-                        </button>
-                    </div>
-                ) : (
+    <div className="flex flex-grow mb-2 items-center">
+        {editMode ? (
+            <div className="w-full space-y-2">
+                <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+                <div className="flex space-x-2">
                     <button
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-400"
-                        onClick={() => setEditMode(true)}
+                        className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        onClick={handleSaveCategoryName}
                     >
-                        Edit
+                        Save
                     </button>
-                )}
+                    <button
+                        className="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        onClick={handleDeleteCategory}
+                    >
+                        Delete
+                    </button>
+                </div>
             </div>
-            <ul className="space-y-2">
-            {products.map(product => (
+        ) : (
+            <div className="flex-grow flex items-center space-x-2">
+                <h1 className="text-xl font-bold flex-grow">{categoryName}</h1>
+                <button
+                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-400"
+                    onClick={() => setEditMode(true)}
+                >
+                    Edit
+                </button>
+            </div>
+        )}
+    </div>
+    <ul className="space-y-2">
+        {products.map(product => (
             <li key={product.id} className="flex justify-between items-center border border-gray-300 rounded p-2">
                 <Link to={`/categories/${categoryId}/products/${product.id}`}>
                     <strong>Name:</strong> {product.name}
                 </Link>
-                <br />
             </li>
         ))}
-            </ul>
-            <button
-                className="bg-black text-white w-full py-2 mt-4 rounded hover:bg-gray-800"
-                onClick={() => navigate(`/categories/${categoryId}/products/new`)}
-            >
-                Add
-            </button>
-        </div>
+    </ul>
+    <button
+        className="bg-black text-white w-full py-2 mt-4 rounded hover:bg-gray-800"
+        onClick={() => navigate(`/categories/${categoryId}/products/new`)}
+    >
+        Add
+    </button>
+</div>
     );
 };
 
