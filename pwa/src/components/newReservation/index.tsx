@@ -82,16 +82,15 @@ const NewReservation: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center min-h-screen bg-gray-100 p-12 pt-16">
-            <h1 className="text-2xl font-bold text-center mb-2">Create New Reservation</h1>
-                <label htmlFor="categorySelect" className="text-xl text-center mb-6">Select Category:</label>
+        <div className="flex flex-col items-center min-h-screen bg-white p-12 pt-16">
+            <h1 className="text-2xl font-semibold text-center mb-2">New Reservation</h1>
                 <select
                     id="categorySelect"
-                    className="w-full max-w-md border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full max-w-md border-2 border-black rounded-[8px] bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={selectedCategory}
                     onChange={handleCategoryChange}
                 >
-                    <option value="">-- Select a Category --</option>
+                    <option value="">Category</option>
                     {categories.map(category => (
                         <option key={category.id} value={category.id}>
                             {category.name}
@@ -99,18 +98,16 @@ const NewReservation: React.FC = () => {
                     ))}
                 </select>
             
-            
-                <h3 className="text-xl text-center mb-2 mt-2">Products</h3>
                 {products.length > 0 ? (
-                    <ul className="w-full max-w-md space-y-4">
+                    <ul className="w-full max-w-md space-y-4 mt-6">
                         {products.map(product => (
                             <li
                                 key={product.id}
-                                className="w-full max-w-md border rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition"
+                                className="w-full max-w-md border-2 border-black rounded-[8px] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                                 onClick={() => handleProductClick(product)}
                                 style={{ cursor: 'pointer' }}
                             >
-                                {product.name}
+                                <p className="text-center font-semibold">{product.name}</p>
                             </li>
                         ))}
                     </ul>
