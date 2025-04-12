@@ -3,6 +3,26 @@ import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, getDoc, query, where, Timestamp, DocumentReference } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
+const formatDate = (timestamp: Timestamp): string => {
+    const date = timestamp.toDate();
+    const options: Intl.DateTimeFormatOptions = {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    };
+    return new Intl.DateTimeFormat('en-GB', options).format(date);
+};
+
+const formatTime = (timestamp: Timestamp): string => {
+    const date = timestamp.toDate();
+    const options: Intl.DateTimeFormatOptions = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    };
+    return new Intl.DateTimeFormat('en-GB', options).format(date);
+};
+
 const History: React.FC = () => {
     const { firestore, currentUser } = useFirebase() || {};
     const [reservations, setReservations] = useState<any[]>([]);
@@ -56,12 +76,10 @@ const History: React.FC = () => {
                         return {
                             id: doc.id,
                             ...data,
-                            from: data.from instanceof Timestamp
-                                ? data.from.toDate().toLocaleString()
-                                : 'N/A',
-                            to: data.to instanceof Timestamp
-                                ? data.to.toDate().toLocaleString()
-                                : 'N/A',
+                            fromDate: data.from instanceof Timestamp ? formatDate(data.from) : 'N/A',
+                            fromTime: data.from instanceof Timestamp ? formatTime(data.from) : 'N/A',
+                            toDate: data.to instanceof Timestamp ? formatDate(data.to) : 'N/A',
+                            toTime: data.to instanceof Timestamp ? formatTime(data.to) : 'N/A',
                             productData,
                             categoryData,
                         };
@@ -104,28 +122,18 @@ const History: React.FC = () => {
                         >
                             <h2 className="text-lg font-semibold">{reservation.productData?.name || 'N/A'}</h2>
                             <p className="text-sm text-gray-500">
-                            {new Date(reservation.from).toLocaleDateString('en-US', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
-                                {' '}
-                                -{' '}
-                                {new Date(reservation.to).toLocaleDateString('en-US', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
+                                {reservation.fromDate}
+                                {reservation.fromDate !== reservation.toDate && (
+                                    <>
+                                        {' - '}
+                                        {reservation.toDate}
+                                    </>
+                                )}
                             </p>
                             <p className="text-sm text-gray-500">
-                                {new Date(reservation.from).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })} -{' '}
-                                {new Date(reservation.to).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}
+                                {reservation.fromTime}
+                                {' - '}
+                                {reservation.toTime}
                             </p>
                         </div>
                     ))}
