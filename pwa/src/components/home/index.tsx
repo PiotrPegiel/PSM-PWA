@@ -1,7 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { collection, getDocs, getDoc, addDoc, doc, DocumentReference, setDoc, Timestamp, query, where } from 'firebase/firestore';
+import { collection, getDocs, getDoc, DocumentReference, Timestamp, query, where } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+
+const formatDate = (timestamp: Timestamp): string => {
+    const date = timestamp.toDate();
+    const options: Intl.DateTimeFormatOptions = {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    };
+    return new Intl.DateTimeFormat('en-GB', options).format(date);
+};
+
+const formatTime = (timestamp: Timestamp): string => {
+    const date = timestamp.toDate();
+    const options: Intl.DateTimeFormatOptions = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    };
+    return new Intl.DateTimeFormat('en-GB', options).format(date);
+};
 
 const Home: React.FC = () => {
     const { firestore, currentUser } = useFirebase() || {};
@@ -9,11 +29,10 @@ const Home: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const navigate = useNavigate();
 
-    // Fetch reservations and resolve references
     useEffect(() => {
         const fetchReservations = async () => {
             if (!firestore || !currentUser) {
-                return; // Exit early if not initialized
+                return;
             }
 
             try {
@@ -37,44 +56,29 @@ const Home: React.FC = () => {
                     querySnapshot.docs.map(async doc => {
                         const data = doc.data();
                         let productData = null;
-                        let categoryData = null;
 
                         if (data.productId instanceof DocumentReference) {
                             const productDoc = await getDoc(data.productId);
                             if (productDoc.exists()) {
                                 productData = productDoc.data();
-
-                                if (productData.categoryId instanceof DocumentReference) {
-                                    const categoryDoc = await getDoc(productData.categoryId);
-                                    if (categoryDoc.exists()) {
-                                        categoryData = categoryDoc.data();
-                                    }
-                                }
                             }
                         }
 
                         return {
                             id: doc.id,
                             ...data,
-                            from: data.from instanceof Timestamp
-                                ? data.from.toDate().toLocaleString()
-                                : 'N/A',
-                            to: data.to instanceof Timestamp
-                                ? data.to.toDate().toLocaleString()
-                                : 'N/A',
+                            fromDate: data.from instanceof Timestamp ? formatDate(data.from) : 'N/A',
+                            fromTime: data.from instanceof Timestamp ? formatTime(data.from) : 'N/A',
+                            toDate: data.to instanceof Timestamp ? formatDate(data.to) : 'N/A',
+                            toTime: data.to instanceof Timestamp ? formatTime(data.to) : 'N/A',
                             productData,
-                            categoryData,
                         };
                     })
                 );
 
                 setReservations(allReservations);
             } catch (error: any) {
-                if (error.code === 'failed-precondition' || error.code === 'permission-denied') {
-                    console.error('Firestore index required. Create it here:', error.message);
-                } else {
-                    console.error('Error fetching reservations:', error);
-                }
+                console.error('Error fetching reservations:', error);
             } finally {
                 setLoading(false);
             }
@@ -84,16 +88,15 @@ const Home: React.FC = () => {
     }, [firestore, currentUser]);
 
     if (!firestore || !currentUser) {
-        return <div>Initializing...</div>; // Show a fallback UI while initializing
+        return <div>Initializing...</div>;
     }
 
     if (loading) {
         return <div>Loading reservations...</div>;
     }
 
-
     return (
-        <div className="container mx-auto text-center px-4 p-12 ">
+        <div className="container mx-auto text-center px-4 p-12">
             <h1 className="text-2xl font-bold mb-6">Current Reservations</h1>
             <button
                 onClick={() => navigate('/new-reservation')}
@@ -113,30 +116,18 @@ const Home: React.FC = () => {
                                 {reservation.productData?.name || 'N/A'}
                             </h5>
                             <p className="text-sm text-gray-600">
-                                {new Date(reservation.from).toLocaleDateString('en-US', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
-                                {' '}
-                                -{' '}
-                                {new Date(reservation.to).toLocaleDateString('en-US', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
+                                {reservation.fromDate}
+                                {reservation.fromDate !== reservation.toDate && (
+                                    <>
+                                        {' - '}
+                                        {reservation.toDate}
+                                    </>
+                                )}
                             </p>
-                            
                             <p className="text-sm text-gray-600">
-                                {new Date(reservation.from).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}{' '}
-                                -{' '}
-                                {new Date(reservation.to).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                })}
+                                {reservation.fromTime}
+                                {' - '}
+                                {reservation.toTime}
                             </p>
                         </div>
                     ))}
