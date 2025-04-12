@@ -6,6 +6,15 @@ import { getStorage, ref, getDownloadURL, uploadBytesResumable, deleteObject } f
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import * as L from 'leaflet';
+import { Swiper, SwiperSlide } from 'swiper/react';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
+// Import required modules
+import { Navigation, Pagination } from 'swiper/modules';
 
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -315,7 +324,6 @@ const ProductDetails: React.FC = () => {
             <div className="w-full max-w-sm">
                 {/* Name Input */}
                 <div className="mb-2 mx-1">
-                    <label className="block text-sm font-medium text-gray-700">Name:</label>
                     {editMode ? (
                         <input
                             type="text"
@@ -325,54 +333,92 @@ const ProductDetails: React.FC = () => {
                             placeholder="Name"
                         />
                     ) : (
-                        <p className="text-sm">{product.name}</p>
+                        <p className="text-2xl font-semibold">{product.name}</p>
                     )}
                 </div>
-                {editMode ? (
+                {/* Pictures Section */}
                 <div className="mb-4 mx-1">
-                    <div className="mb-4 mx-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Latitude:</label>
-                        <input
-                            type="number"
-                            className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={currentLocation?.lat}
-                            onChange={(e) => handleLatitudeChange(e.target.value)}
-                            placeholder="Latitude"
-                        />
-                    </div>
+                    <Swiper
+                        modules={[Navigation, Pagination]}
+                        spaceBetween={10}
+                        slidesPerView={1}
+                        navigation
+                        pagination={{ clickable: true }}
+                        className="w-full h-auto"
+                    >
+                        {/* Existing pictures from the database */}
+                        {pictures.map((url, index) => (
+                            <SwiperSlide key={`db-${index}`}>
+                                <div className="relative">
+                                    <img
+                                        src={url}
+                                        alt={`Product ${index}`}
+                                        className="w-full h-auto object-cover rounded-md"
+                                    />
+                                    {editMode && (
+                                        <img
+                                            className="absolute bottom-4 right-4 text-white w-14 h-14 hover:cursor-pointer"
+                                            src="/assets/icons/fi-rr-trash-xmark.svg"
+                                            onClick={() => handleDeletePicture(product.pictures[index])}
+                                        />
+                                    )}
+                                </div>
+                            </SwiperSlide>
+                        ))}
 
-                    <div className="mb-4 mx-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Longitude:</label>
-                        <input
-                            type="number"
-                            className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={currentLocation?.lng}
-                            onChange={(e) => handleLongitudeChange(e.target.value)}
-                            placeholder="Longitude"
-                        />
-                    </div>
-
-                    <div className="mt-4">
-                        <h5 className="text-lg font-medium mb-2">Select Location on Map:</h5>
-                        <MapContainer
-                            style={{ height: '300px', width: '100%' }}
-                        >
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-                            <SetView lat={currentLocation?.lat || 0} lng={currentLocation?.lng || 0} />
-                            <LocationSelector />
-                        </MapContainer>
-                    </div>
+                        {/* Queued pictures */}
+                        {newPictures.map((file, index) => (
+                            <SwiperSlide key={`queue-${index}`}>
+                                <div className="relative">
+                                    <img
+                                        src={getPreviewURL(file)}
+                                        alt={`Queued ${index}`}
+                                        className="w-full h-auto object-cover rounded-md"
+                                    />
+                                    <img
+                                        className="absolute bottom-4 right-4 text-white w-14 h-14 hover:cursor-pointer"
+                                        src="/assets/icons/fi-rr-trash-xmark.svg"
+                                        onClick={() => handleRemoveQueuedPicture(index)}
+                                    />
+                                </div>
+                            </SwiperSlide>
+                        ))}
+                    </Swiper>
+                    {editMode && (
+                        <>
+                            <div className="grid grid-cols-1 gap-4 mt-4">
+                                <input
+                                    type="file"
+                                    multiple
+                                    className="mt-2 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-gray-500 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-700 focus:outline-none disabled:pointer-events-none disabled:opacity-60"
+                                    onChange={handleFileChange}
+                                />
+                                <button
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2 hover:bg-blue-600"
+                                    onClick={handleCapture}
+                                >
+                                    Open Camera
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+             {/* Map */}
+             {editMode ? (
+                    <div className="w-[80%] border-2 border-black rounded-[8px]">
+                            <MapContainer
+                                style={{ height: '300px', width: '100%' }}
+                            >
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                <SetView lat={currentLocation?.lat || 0} lng={currentLocation?.lng || 0} />
+                                <LocationSelector />
+                            </MapContainer>
                     </div>
                 ) : (
-                    <div className="mb-4 mx-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Latitude:</label>
-                        <p className="text-sm mb-2">{latitude !== '' ? latitude : 'N/A'}</p>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Longitude:</label>
-                        <p className="text-sm mb-2">{longitude !== '' ? longitude : 'N/A'}</p>
-                            <div className="mt-4">
-                            <h5 className="text-lg font-medium mb-2">Select Location on Map:</h5>
+                    <div className="w-[80%] border-2 border-black rounded-[8px]">
                             <MapContainer
                                 style={{ height: '300px', width: '100%' }}
                             >
@@ -388,88 +434,23 @@ const ProductDetails: React.FC = () => {
                                     <Marker position={[latitude, longitude]} />
                                 )}
                             </MapContainer>
-                        </div>
                     </div>
                 )}
-                {/* Pictures Section */}
-                <div className="mb-4 mx-1">
-                    <label className="block text-left font-medium mb-2">Pictures:</label>
-                    {pictures.map((url, index) => (
-                        <div key={index} className="grid grid-cols-1 mb-2 gap-2">
-                            <img src={url} alt={`Product ${index}`} className="w-auto h-auto object-cover rounded-md mr-2" />
-                            {editMode && (
-                                <button
-                                    className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-400"
-                                    onClick={() => handleDeletePicture(product.pictures[index])}
-                                >
-                                    🗑️
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                    {editMode && (
-                        <>
-                            <div className="grid grid-cols-1 gap-4">
-                                <input
-                                    type="file"
-                                    multiple
-                                    className="mt-2 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-gray-500 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-700 focus:outline-none disabled:pointer-events-none disabled:opacity-60"
-                                    onChange={handleFileChange}
-                                />
-                                <button
-                                    className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2 hover:bg-blue-600"
-                                    onClick={handleCapture}
-                                >
-                                    Open Camera
-                                </button>
-                            </div>
-                            {newPictures.length > 0 && (
-                                <div className="mt-4 grid-cols-1">
-                                    <h5 className="text-lg font-medium mb-2">Queued Pictures:</h5>
-                                    {newPictures.map((file, index) => (
-                                        <div key={index} className="grid grid-cols-1 mb-2 gap-2">
-                                            <img
-                                                src={getPreviewURL(file)}
-                                                alt={`Queued ${index}`}
-                                                className="w-auto h-auto object-cover rounded-md mr-2"
-                                            />
-                                            <button
-                                                className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-400"
-                                                onClick={() => handleRemoveQueuedPicture(index)}
-                                            >
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            </div>
             {/* Save or Edit/Delete Buttons */}
             {editMode ? (
                 <button
-                    className="w-full max-w-sm bg-black text-white py-3 rounded-lg mt-6 text-sm font-medium hover:bg-gray-800"
+                    className="w-full max-w-sm bg-black text-white py-3 rounded-[8px] mt-6 text-sm font-medium"
                     onClick={handleSave}
                 >
                     Save
                 </button>
             ) : (
-                <div className="flex space-x-4 mt-6">
-                    <button
-                        className="bg-gray-500 text-white py-3 px-6 rounded-lg text-sm font-medium hover:bg-gray-400"
+                <button
+                        className="w-full max-w-sm bg-black text-white py-3 rounded-[8px] mt-6 text-sm font-medium"
                         onClick={() => setEditMode(true)}
                     >
                         Edit
-                    </button>
-                    <button
-                        className="bg-red-500 text-white py-3 px-6 rounded-lg text-sm font-medium hover:bg-red-600"
-                        onClick={handleDelete}
-                    >
-                        Delete
-                    </button>
-                </div>
+                </button>
             )}
         </div>
     );

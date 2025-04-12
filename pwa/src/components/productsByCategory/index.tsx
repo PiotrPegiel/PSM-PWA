@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ref, deleteObject } from 'firebase/storage';
 
 const ProductsByCategory: React.FC = () => {
-    const { firestore } = useFirebase() || {};
+    const { firestore, storage } = useFirebase() || {};
     const { categoryId } = useParams<{ categoryId: string }>();
     const navigate = useNavigate();
     const [products, setProducts] = useState<any[]>([]);
@@ -59,24 +60,31 @@ const ProductsByCategory: React.FC = () => {
         }
     };
 
-    const handleDeleteCategory = async () => {
-        if (firestore && categoryId) {
+    const handleDeleteProduct = async (productId: string, pictures: string[]) => {
+        if (firestore && productId) {
+            const confirmDelete = window.confirm('Are you sure you want to delete this product?');
+            if (!confirmDelete) return;
+
             try {
-                // Delete all products in the category
-                const productsRef = collection(firestore, 'products');
-                const q = query(productsRef, where('categoryId', '==', doc(firestore, 'categories', categoryId)));
-                const querySnapshot = await getDocs(q);
-                const deletePromises = querySnapshot.docs.map(productDoc => deleteDoc(doc(firestore, 'products', productDoc.id)));
-                await Promise.all(deletePromises);
+                // Delete all associated pictures from Firebase Storage
+                if (pictures && pictures.length > 0) {
+                    await Promise.all(
+                        pictures.map(async (path) => {
+                            const storageRef = ref(storage, path);
+                            await deleteObject(storageRef);
+                        })
+                    );
+                }
 
-                // Delete the category
-                const categoryRef = doc(firestore, 'categories', categoryId);
-                await deleteDoc(categoryRef);
+                // Delete the product document from Firestore
+                const productRef = doc(firestore, 'products', productId);
+                await deleteDoc(productRef);
 
-                alert('Category and its products deleted successfully!');
-                navigate('/categories');
+                setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+                alert('Product and associated pictures deleted successfully!');
             } catch (error) {
-                console.error('Error deleting category or products:', error);
+                console.error('Error deleting product or pictures:', error);
+                alert('Failed to delete product or associated pictures.');
             }
         }
     };
@@ -86,6 +94,7 @@ const ProductsByCategory: React.FC = () => {
     }
 
     return (
+
     <div className="container w-full max-w-md pt-8 px-2">
         <div className="flex flex-grow w-full max-w-md mb-2 items-center">
             {editMode ? (
@@ -148,6 +157,7 @@ const ProductsByCategory: React.FC = () => {
         >
             Add
         </button>
+
     </div>
     );
 };
