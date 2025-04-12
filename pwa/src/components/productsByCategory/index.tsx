@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const ProductsByCategory: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -112,28 +112,30 @@ const ProductsByCategory: React.FC = () => {
                 </div>
             </div>
         ) : (
-            <div className="flex-grow flex items-center space-x-2">
-                <h1 className="text-xl font-bold flex-grow">{categoryName}</h1>
-                <button
-                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-400"
+            <div className="w-full flex justify-center items-center space-x-4">
+                <div className="w-5 h-5"></div>
+                <h1 className="text-xl font-bold">{categoryName}</h1>
+                <img
+                    src="/assets/icons/fi-rr-edit.svg"
+                    className="w-5 h-5"
                     onClick={() => setEditMode(true)}
-                >
-                    Edit
-                </button>
-            </div>
+                />
+                </div>
         )}
     </div>
-    <ul className="space-y-2">
+    <div className="space-y-4">
         {products.map(product => (
-            <li key={product.id} className="flex justify-between items-center border border-gray-300 rounded p-2">
-                <Link to={`/categories/${categoryId}/products/${product.id}`}>
-                    <strong>Name:</strong> {product.name}
-                </Link>
-            </li>
+            <div
+                key={product.id}
+                className="flex justify-center items-center border-2 border-black rounded-[8px] p-2 hover:cursor-pointer"
+                onClick = {() => navigate(`/categories/${categoryId}/products/${product.id}`)}
+            >
+                    <p>{product.name}</p>
+            </div>
         ))}
-    </ul>
+    </div>
     <button
-        className="bg-black text-white w-full py-2 mt-4 rounded hover:bg-gray-800"
+        className="bg-black text-white w-full py-2 mt-4 rounded-[8px]"
         onClick={() => navigate(`/categories/${categoryId}/products/new`)}
     >
         Add

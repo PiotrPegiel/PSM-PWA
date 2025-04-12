@@ -10,13 +10,13 @@ const Admin: React.FC = () => {
             <div className="space-y-4 w-full max-w-xs">
                 <Link
                     to="/categories"
-                    className="block w-full py-3 text-center text-lg font-medium text-black border border-black rounded-lg no-underline hover:bg-gray-200"
+                    className="block w-full py-3 text-center text-lg font-semibold text-black border-2 border-black rounded-[8px] no-underline hover:no-underline hover:text-black"
                 >
                     Categories
                 </Link>
                 <Link
                     to="/user-roles"
-                    className="block w-full py-3 text-center text-lg font-medium text-black border border-black rounded-lg no-underline hover:bg-gray-200"
+                    className="block w-full py-3 text-center text-lg font-semibold text-black border-2 border-black rounded-[8px] no-underline hover:no-underline hover:text-black"
                 >
                     Users
                 </Link>

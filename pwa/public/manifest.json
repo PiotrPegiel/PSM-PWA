@@ -3,22 +3,22 @@
   "name": "Reservix",
   "icons": [
     {
-      "src": "/assets/icons/icon-64x64.png",
+      "src": "./assets/icons/icon-64x64.png",
       "sizes": "64x64",
       "type": "image/png"
     },
     {
-      "src": "/assets/icons/icon-512x512.png",
+      "src": "./assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/assets/icons/icon-32x32.png",
+      "src": "./assets/icons/icon-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "/assets/icons/icon-16x16.png",
+      "src": "./assets/icons/icon-16x16.png",
       "sizes": "16x16",
       "type": "image/png"
     }
