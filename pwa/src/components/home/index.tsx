@@ -118,7 +118,15 @@ const Home: React.FC = () => {
                                     month: 'long',
                                     year: 'numeric',
                                 })}
+                                {' '}
+                                -{' '}
+                                {new Date(reservation.to).toLocaleDateString('en-US', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
                             </p>
+                            
                             <p className="text-sm text-gray-600">
                                 {new Date(reservation.from).toLocaleTimeString('en-US', {
                                     hour: '2-digit',
