@@ -52,6 +52,7 @@ function App() {
 
   return (
     <>
+      {userLoggedIn}
       <div className="w-full flex flex-col pb-6">{routesElement}</div>
     </>
   );

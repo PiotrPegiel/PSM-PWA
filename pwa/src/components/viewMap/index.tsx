@@ -175,7 +175,7 @@ const MapView: React.FC = () => {
     return (
         <MapContainer
             center={currentLocation || [0, 0]}
-            zoom={13}
+            zoom={12}
             style={{ height: '100vh', width: '100%' }}
             ref={(mapInstance) => {
                 if (mapInstance && !mapRef.current) {

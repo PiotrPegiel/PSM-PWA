@@ -280,11 +280,19 @@ const ReservationNewEdit: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center min-h-screen p-6">
+        <div className="flex w-full flex-col items-center min-h-screen pt-12 ">
             {<Header />}
-            <h1 className="text-xl font-semibold mb-6">
-                {editMode && !reservationId ? 'New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
-            </h1>
+            <div className="relative w-full max-w-md mb-6">
+                <button
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
+                    onClick={() => navigate(-1)} 
+                >
+                    <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                </button>
+                <h1 className="text-2xl font-bold text-center">
+                    {editMode && !reservationId ? 'New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
+                </h1>
+            </div>
             <div className="w-full max-w-md p-6 rounded-lg">
                 {/* picture carousel */}
                 <div className="mb-4">
@@ -296,7 +304,7 @@ const ReservationNewEdit: React.FC = () => {
                             <img
                                 src={product.pictures[currentPictureIndex]}
                                 alt={`Product ${currentPictureIndex}`}
-                                className="w-full h-auto object-cover rounded-md shadow-sm"
+                                className="w-full max-w-md h-auto object-cover rounded-md shadow-sm"
                             />
                             <button
                                 onClick={handlePreviousPicture}
