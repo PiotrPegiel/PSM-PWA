@@ -95,9 +95,15 @@ const ProductsByCategory: React.FC = () => {
 
     return (
         <div className="container w-full max-w-md pt-8 px-2">
-            <div className="flex flex-grow w-full max-w-md mb-2 items-center">
+            <div className="w-full flex justify-center items-center space-x-4 mb-6">
                 {editMode ? (
                     <div className="w-full flex space-x-5 items-center">
+                                                    <button
+                            className=""
+                            onClick={() => navigate(-1)} 
+                            >
+                                <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                            </button>
                         <input
                             type="text"
                             className="flex-grow border border-gray-300 rounded px-2 py-1"
@@ -118,8 +124,7 @@ const ProductsByCategory: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="w-full flex justify-center items-center space-x-4">
-                        <div className="relative w-full max-w-md mb-6">
+                        <div className="relative w-full max-w-md">
                             <button
                             className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
                             onClick={() => navigate(-1)} 
@@ -134,7 +139,6 @@ const ProductsByCategory: React.FC = () => {
                                 onClick={() => setEditMode(true)}
                             />
                         </div>
-                    </div>
                 )}
             </div>
             <div className="space-y-4 mt-5">
