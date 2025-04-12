@@ -7,7 +7,7 @@ import { ref, getDownloadURL } from 'firebase/storage';
 const ReservationNewEdit: React.FC = () => {
     const { firestore, storage, currentUser } = useFirebase() || {}; // Include currentUser from FirebaseContext
     const { reservationId } = useParams<{ reservationId: string }>();
-    const location = useLocation(); // Access the state passed via navigate
+    const location = useLocation(); 
     const navigate = useNavigate();
 
     const [reservation, setReservation] = useState<any>(location.state?.reservation || {}); // Initialize with state or empty object
@@ -361,10 +361,11 @@ const ReservationNewEdit: React.FC = () => {
                 ) : (
                     <div className="flex flex-column space-x-4 mt-4">
                         <button
-                            className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-                        >
-                            View On Map
-                        </button>
+                        className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                        onClick={() => navigate(`/reservations/${reservationId}/map`)}
+                    >
+                        View On Map
+                    </button>
                         {!isPastReservation && (
                             <>
                                 <button
