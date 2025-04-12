@@ -1,8 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { doc, getDoc, setDoc, deleteDoc, GeoPoint } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL, uploadBytesResumable, deleteObject } from 'firebase/storage';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import * as L from 'leaflet';
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+    iconUrl: require('leaflet/dist/images/marker-icon.png'),
+    shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+
+
 
 const ProductDetails: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -16,8 +27,51 @@ const ProductDetails: React.FC = () => {
     const [newPictures, setNewPictures] = useState<File[]>([]);
     const [latitude, setLatitude] = useState<number | ''>('');
     const [longitude, setLongitude] = useState<number | ''>('');
+    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
 
     const storage = getStorage();
+
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setCurrentLocation({ lat: latitude, lng: longitude });
+                },
+                (error) => {
+                    console.error('Error fetching location:', error);
+                    setCurrentLocation({ lat: 0, lng: 0 });
+                    alert('Unable to fetch your location. Defaulting to [0, 0].');
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by your browser.');
+        }
+    }, []);
+
+
+    const LocationSelector = () => {
+        useMapEvents({
+            click(e: L.LeafletMouseEvent) {
+                const { lat, lng } = e.latlng;
+                setCurrentLocation({ lat, lng });
+                setLatitude(lat);
+                setLongitude(lng);
+            },
+        });
+        return currentLocation ? <Marker position={[currentLocation.lat, currentLocation.lng]} /> : null;
+    };
+
+    const SetView = ({ lat, lng }: { lat: number; lng: number }) => {
+        const map = useMap();
+        useEffect(() => {
+            if (lat && lng) {
+                map.setView([lat, lng], 25); // Set the center and zoom level
+            }
+        }, [lat, lng, map]);
+        return null;
+    };
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -74,6 +128,9 @@ const ProductDetails: React.FC = () => {
 
             const location = latitude !== '' && longitude !== '' ? new GeoPoint(latitude, longitude) : null;
 
+            console.log('Location:', location);
+            console.log('lat:', latitude);
+            console.log('long:', longitude);
             await setDoc(productRef, {
                 ...product,
                 location,
@@ -231,7 +288,7 @@ const ProductDetails: React.FC = () => {
     const handleLatitudeChange = (value: string) => {
         const parsedValue = value === '' ? '' : parseFloat(value);
         if (parsedValue === '' || (parsedValue >= -90 && parsedValue <= 90)) {
-            setLatitude(parsedValue);
+            setLatitude(parsedValue === "" ? 0 : parsedValue);
         } else {
             alert('Latitude must be between -90 and 90.');
         }
@@ -240,7 +297,7 @@ const ProductDetails: React.FC = () => {
     const handleLongitudeChange = (value: string) => {
         const parsedValue = value === '' ? '' : parseFloat(value);
         if (parsedValue === '' || (parsedValue >= -180 && parsedValue <= 180)) {
-            setLongitude(parsedValue);
+            setLongitude(parsedValue === "" ? 0 : parsedValue);
         } else {
             alert('Longitude must be between -180 and 180.');
         }
@@ -251,13 +308,14 @@ const ProductDetails: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center justify-start min-h-screen  overflow-y-auto pt-12 ">
+        <div className="flex flex-col items-center justify-start min-h-screen overflow-y-auto pt-12">
             <h1 className="text-xl font-semibold mb-6">
                 {editMode && !productId ? 'New Product' : editMode ? 'Edit Product' : 'Product Details'}
             </h1>
             <div className="w-full max-w-sm">
-                <div className="mb-4 mx-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Name:</label>
+                {/* Name Input */}
+                <div className="mb-2 mx-1">
+                    <label className="block text-sm font-medium text-gray-700">Name:</label>
                     {editMode ? (
                         <input
                             type="text"
@@ -270,34 +328,70 @@ const ProductDetails: React.FC = () => {
                         <p className="text-sm">{product.name}</p>
                     )}
                 </div>
+                {editMode ? (
                 <div className="mb-4 mx-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Latitude:</label>
-                    {editMode ? (
+                    <div className="mb-4 mx-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Latitude:</label>
                         <input
                             type="number"
                             className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={latitude}
+                            value={currentLocation?.lat}
                             onChange={(e) => handleLatitudeChange(e.target.value)}
                             placeholder="Latitude"
                         />
-                    ) : (
-                        <p className="text-sm">{latitude !== '' ? latitude : 'N/A'}</p>
-                    )}
-                </div>
-                <div className="mb-4 mx-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Longitude:</label>
-                    {editMode ? (
+                    </div>
+
+                    <div className="mb-4 mx-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Longitude:</label>
                         <input
                             type="number"
                             className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={longitude}
+                            value={currentLocation?.lng}
                             onChange={(e) => handleLongitudeChange(e.target.value)}
                             placeholder="Longitude"
                         />
-                    ) : (
-                        <p className="text-sm">{longitude !== '' ? longitude : 'N/A'}</p>
-                    )}
-                </div>
+                    </div>
+
+                    <div className="mt-4">
+                        <h5 className="text-lg font-medium mb-2">Select Location on Map:</h5>
+                        <MapContainer
+                            style={{ height: '300px', width: '100%' }}
+                        >
+                            <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            <SetView lat={currentLocation?.lat || 0} lng={currentLocation?.lng || 0} />
+                            <LocationSelector />
+                        </MapContainer>
+                    </div>
+                    </div>
+                ) : (
+                    <div className="mb-4 mx-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Latitude:</label>
+                        <p className="text-sm mb-2">{latitude !== '' ? latitude : 'N/A'}</p>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Longitude:</label>
+                        <p className="text-sm mb-2">{longitude !== '' ? longitude : 'N/A'}</p>
+                            <div className="mt-4">
+                            <h5 className="text-lg font-medium mb-2">Select Location on Map:</h5>
+                            <MapContainer
+                                style={{ height: '300px', width: '100%' }}
+                            >
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                {typeof longitude === 'number' && typeof latitude === 'number' && (
+                                    <SetView lat={latitude} lng={longitude} />
+                                    
+                                )}
+                                
+                                {typeof latitude === 'number' && typeof longitude === 'number' && (
+                                    <Marker position={[latitude, longitude]} />
+                                )}
+                            </MapContainer>
+                        </div>
+                    </div>
+                )}
+                {/* Pictures Section */}
                 <div className="mb-4 mx-1">
                     <label className="block text-left font-medium mb-2">Pictures:</label>
                     {pictures.map((url, index) => (
@@ -353,6 +447,7 @@ const ProductDetails: React.FC = () => {
                     )}
                 </div>
             </div>
+            {/* Save or Edit/Delete Buttons */}
             {editMode ? (
                 <button
                     className="w-full max-w-sm bg-black text-white py-3 rounded-lg mt-6 text-sm font-medium hover:bg-gray-800"

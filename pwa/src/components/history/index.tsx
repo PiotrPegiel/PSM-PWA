@@ -104,8 +104,15 @@ const History: React.FC = () => {
                         >
                             <h2 className="text-lg font-semibold">{reservation.productData?.name || 'N/A'}</h2>
                             <p className="text-sm text-gray-500">
-                                {new Date(reservation.from).toLocaleDateString('en-US', {
-                                    day: '2-digit',
+                            {new Date(reservation.from).toLocaleDateString('en-US', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
+                                {' '}
+                                -{' '}
+                                {new Date(reservation.to).toLocaleDateString('en-US', {
+                                    day: 'numeric',
                                     month: 'long',
                                     year: 'numeric',
                                 })}
