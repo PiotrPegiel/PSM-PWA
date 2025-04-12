@@ -9,6 +9,7 @@ const UserProfile: React.FC = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [editMode, setEditMode] = useState<boolean>();
 
   const handleUpdate = async () => {
     try {
@@ -37,7 +38,8 @@ const UserProfile: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center min-h-screen mt-4">
+      <h1 className="mt-4 text-2xl font-semibold">User Profile</h1>
       <div className="bg-white p-6 rounded-lg">
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
@@ -56,8 +58,8 @@ const UserProfile: React.FC = () => {
               />
             </svg>
           </div>
-          <h2 className="mt-4 text-lg font-semibold">User Profile</h2>
-          <p className="text-gray-600">{currentUser?.email}</p>
+          
+          <p className="text-gray-600 mb-2">{currentUser?.email}</p>
           <p className="text-gray-600">Change Password</p>
         </div>
         <form
@@ -74,34 +76,60 @@ const UserProfile: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={!editMode} 
             />
           </div>
-          <div>
+          {editMode ? (
+          <div className="space-y-4">
+            <div>
+              <input
+                type="password"
+                placeholder="Old Password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <input
+                type="password"
+                placeholder="New Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          ): (
+        <div>
             <input
               type="password"
-              placeholder="Old Password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
+              placeholder="Password"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={!editMode}
             />
           </div>
-          <div>
-            <input
-              type="password"
-              placeholder="New Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
-          >
-            Update
-          </button>
+          )}
+          
+          {editMode ? (
+              <button
+              type="submit"
+              className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+            >
+              Update
+            </button>
+          ):(
+            <button
+              onClick={() => setEditMode(true)}
+              className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+            >
+              Edit
+            </button>
+          )
+            
+          }
+          
         </form>
-        {message && <p className="mt-4 text-center text-sm text-gray-600">{message}</p>}
       </div>
     </div>
   );
