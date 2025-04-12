@@ -93,33 +93,50 @@ const Home: React.FC = () => {
 
 
     return (
-        <div className="container text-center mt-5">
-            <h1>All Reservations</h1>
+        <div className="container mx-auto text-center px-4 p-12 ">
+            <h1 className="text-2xl font-bold mb-6">Current Reservations</h1>
+            <button
+                onClick={() => navigate('/new-reservation')}
+                className="bg-black text-white py-2 px-4 rounded-md w-full max-w-md mb-6"
+            >
+                Create reservation
+            </button>
             {reservations.length > 0 ? (
-                <ul className="list-group mt-4">
+                <div className="flex flex-col items-center space-y-4">
                     {reservations.map(reservation => (
-                        <li
+                        <div
                             key={reservation.id}
-                            className="list-group-item"
+                            className="w-full max-w-md border border-gray-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                             onClick={() => navigate(`/reservations/${reservation.id}`)}
-                            style={{ cursor: 'pointer' }}
                         >
-                            <strong>Reservation ID:</strong> {reservation.id || 'N/A'} <br />
-                            <strong>Product Name:</strong> {reservation.productData?.name || 'N/A'} <br />
-                            <strong>Category:</strong> {reservation.categoryData?.name || 'N/A'} <br />
-                            <strong>User ID:</strong> {reservation.userId || 'N/A'} <br />
-                            <strong>From:</strong> {reservation.from} <br />
-                            <strong>To:</strong> {reservation.to} <br />
-                            <strong>Product Reference:</strong> {reservation.productId?.id || 'N/A'}
-                        </li>
+                            <h5 className="text-lg font-semibold mb-2">
+                                {reservation.productData?.name || 'N/A'}
+                            </h5>
+                            <p className="text-sm text-gray-600">
+                                {new Date(reservation.from).toLocaleDateString('en-US', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                {new Date(reservation.from).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}{' '}
+                                -{' '}
+                                {new Date(reservation.to).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}
+                            </p>
+                        </div>
                     ))}
-                </ul>
+                </div>
             ) : (
-                <p>No reservations found.</p>
+                <p className="text-gray-500">No reservations found.</p>
             )}
-
-                <button onClick={() => navigate('/new-reservation')} className="btn btn-success mt-3">New Reservation</button>
-            </div>
+        </div>
     );
 };
 

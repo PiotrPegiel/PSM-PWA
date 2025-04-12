@@ -92,29 +92,39 @@ const History: React.FC = () => {
     }
 
     return (
-        <div className="container text-center mt-5">
-            <h1>Past Reservations</h1>
+        <div className="container mx-auto px-4 p-12 text-center">
+            <h1 className="text-2xl font-bold text-center mb-6">Reservations History</h1>
             {reservations.length > 0 ? (
-                <ul className="list-group mt-4">
+                <div className="flex flex-col items-center space-y-4">
                     {reservations.map(reservation => (
-                        <li
+                        <div
                             key={reservation.id}
-                            className="list-group-item"
+                            className="w-full max-w-md border rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition"
                             onClick={() => navigate(`/reservations/${reservation.id}`)}
-                            style={{ cursor: 'pointer' }}
                         >
-                            <strong>Reservation ID:</strong> {reservation.id || 'N/A'} <br />
-                            <strong>Product Name:</strong> {reservation.productData?.name || 'N/A'} <br />
-                            <strong>Category:</strong> {reservation.categoryData?.name || 'N/A'} <br />
-                            <strong>User ID:</strong> {reservation.userId || 'N/A'} <br />
-                            <strong>From:</strong> {reservation.from} <br />
-                            <strong>To:</strong> {reservation.to} <br />
-                            <strong>Product Reference:</strong> {reservation.productId?.id || 'N/A'}
-                        </li>
+                            <h2 className="text-lg font-semibold">{reservation.productData?.name || 'N/A'}</h2>
+                            <p className="text-sm text-gray-500">
+                                {new Date(reservation.from).toLocaleDateString('en-US', {
+                                    day: '2-digit',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                                {new Date(reservation.from).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })} -{' '}
+                                {new Date(reservation.to).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}
+                            </p>
+                        </div>
                     ))}
-                </ul>
+                </div>
             ) : (
-                <p>No past reservations found.</p>
+                <p className="text-center text-gray-500">No past reservations found.</p>
             )}
         </div>
     );

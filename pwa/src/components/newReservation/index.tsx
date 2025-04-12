@@ -82,13 +82,12 @@ const NewReservation: React.FC = () => {
     }
 
     return (
-        <div className="container text-center mt-5">
-            <h1>Create New Reservation</h1>
-            <div className="form-group mt-4">
-                <label htmlFor="categorySelect">Select Category:</label>
+        <div className="flex flex-col items-center min-h-screen bg-gray-100 p-12 pt-16">
+            <h1 className="text-2xl font-bold text-center mb-2">Create New Reservation</h1>
+                <label htmlFor="categorySelect" className="text-xl text-center mb-6">Select Category:</label>
                 <select
                     id="categorySelect"
-                    className="form-control"
+                    className="w-full max-w-md border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={selectedCategory}
                     onChange={handleCategoryChange}
                 >
@@ -99,15 +98,15 @@ const NewReservation: React.FC = () => {
                         </option>
                     ))}
                 </select>
-            </div>
-            <div className="mt-4">
-                <h3>Products</h3>
+            
+            
+                <h3 className="text-xl text-center mb-2 mt-2">Products</h3>
                 {products.length > 0 ? (
-                    <ul className="list-group">
+                    <ul className="w-full max-w-md space-y-4">
                         {products.map(product => (
                             <li
                                 key={product.id}
-                                className="list-group-item"
+                                className="w-full max-w-md border rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition"
                                 onClick={() => handleProductClick(product)}
                                 style={{ cursor: 'pointer' }}
                             >
@@ -119,7 +118,6 @@ const NewReservation: React.FC = () => {
                     <p>{selectedCategory ? 'No products available for this category.' : 'Please select a category.'}</p>
                 )}
             </div>
-        </div>
     );
 };
 

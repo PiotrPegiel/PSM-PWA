@@ -52,7 +52,7 @@ const Categories: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center min-h-screen bg-gray-100 p-12 pt-16">
+        <div className="flex flex-col items-center min-h-screen  p-12 pt-16">
             <h1 className="text-xl font-bold mb-6">Categories</h1>
             {categories.length > 0 ? (
                 <ul className="w-full max-w-md space-y-4">
