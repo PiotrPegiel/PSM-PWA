@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Header from "../header";
 
 const Admin: React.FC = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+            {<Header />}
             <h1 className="text-xl font-bold mb-6">Admin page</h1>
             <div className="space-y-4 w-full max-w-xs">
                 <Link

@@ -52,7 +52,6 @@ function App() {
 
   return (
     <>
-      {userLoggedIn && <Header />}
       <div className="w-full h-screen flex flex-col">{routesElement}</div>
     </>
   );

@@ -4,6 +4,7 @@ import { useFirebase } from '../../contexts/FirebaseContext';
 import { doc, getDoc, setDoc, deleteDoc, DocumentReference, Timestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { useSwipeable } from 'react-swipeable';
+import Header from "../header";
 
 const ReservationNewEdit: React.FC = () => {
     const { firestore, storage, currentUser } = useFirebase() || {}; // Include currentUser from FirebaseContext
@@ -280,6 +281,7 @@ const ReservationNewEdit: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center min-h-screen p-6">
+            {<Header />}
             <h1 className="text-xl font-semibold mb-6">
                 {editMode && !reservationId ? 'New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
             </h1>
@@ -331,12 +333,13 @@ const ReservationNewEdit: React.FC = () => {
                             <input
                                 type="time"
                                 className="w-1/2 border border-gray-300 rounded-[8px] p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value={reservation.from?.split('T')[1]?.slice(0, 5) || ''} // Extract time part
+                                // make the date take into account timezone
+                                value={reservation.from?.split('T')[1]?.slice(0, 5) || ''}
                                 onChange={(e) => handleDateTimeChange('from', 'time', e.target.value)}
                             />
                         </div>
                     ) : (
-                        <p className="text-gray-800">{reservation.from || 'N/A'}</p>
+                        <p className="text-gray-800">{reservation.from.to || 'N/A'}</p>
                     )}
                 </div>
                 {/* to date */}
@@ -369,7 +372,7 @@ const ReservationNewEdit: React.FC = () => {
                         Save
                     </button>
                 ) : (
-                    <div className="flex flex-column space-x-4 mt-4">
+                    <div className="flex flex-column mt- gap-3">
                         <button
                         className="flex-1 bg-white border-2 border-black text-black py-2 rounded-[8px]"
                         onClick={() => navigate(`/reservations/${reservationId}/map`)}
