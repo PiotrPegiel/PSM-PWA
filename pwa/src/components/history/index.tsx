@@ -111,11 +111,11 @@ const History: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 p-12 text-center">
+        <div className="flex flex-col items-center min-h-screen p-12 pt-16 text-center">
             {<Header />}
-            <h1 className="text-2xl font-semibold text-center mb-6">Reservations History</h1>
+                <h1 className="text-2xl font-bold text-center mb-4">History</h1>
             {reservations.length > 0 ? (
-                <div className="flex flex-col items-center space-y-4">
+                <div className="flex w-full flex-col items-center space-y-4">
                     {reservations.map(reservation => (
                         <div
                             key={reservation.id}

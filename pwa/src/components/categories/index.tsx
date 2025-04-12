@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
 
 const Categories: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -9,6 +10,7 @@ const Categories: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [showModal, setShowModal] = useState<boolean>(false);
     const [newCategoryName, setNewCategoryName] = useState<string>('');
+    const navigate = useNavigate(); 
 
     const fetchCategories = async () => {
         try {
@@ -53,7 +55,15 @@ const Categories: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center min-h-screen  p-12 pt-16">
-            <h1 className="text-xl font-bold mb-6">Categories</h1>
+            <div className="relative w-full max-w-md mb-6">
+                <button
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
+                    onClick={() => navigate(-1)} 
+                >
+                    <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                </button>
+                <h1 className="text-2xl font-bold text-center">Categories</h1>
+            </div>
             {categories.length > 0 ? (
                 <ul className="w-full max-w-md space-y-4">
                     {categories.map(category => (
