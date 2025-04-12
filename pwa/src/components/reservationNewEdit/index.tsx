@@ -371,7 +371,7 @@ const ReservationNewEdit: React.FC = () => {
                 ) : (
                     <div className="flex flex-column space-x-4 mt-4">
                         <button
-                        className="flex-1 bg-blue-500 text-white py-2 rounded-[8px] hover:bg-blue-600"
+                        className="flex-1 bg-white border-2 border-black text-black py-2 rounded-[8px]"
                         onClick={() => navigate(`/reservations/${reservationId}/map`)}
                     >
                         View On Map
@@ -379,13 +379,13 @@ const ReservationNewEdit: React.FC = () => {
                         {!isPastReservation && (
                             <>
                                 <button
-                                    className="flex-1 bg-blue-500 text-white py-2 rounded-[8px] hover:bg-blue-600"
+                                    className="flex-1 bg-white border-2 border-black text-black py-2 rounded-[8px]"
                                     onClick={() => setEditMode(true)}
                                 >
                                     Edit Reservation
                                 </button>
                                 <button
-                                    className="flex-1 bg-red-500 text-white py-2 rounded-[8px] hover:bg-red-600"
+                                    className="flex-1 bg-black text-white py-2 rounded-[8px]"
                                     onClick={handleDelete}
                                 >
                                     Cancel Reservation
