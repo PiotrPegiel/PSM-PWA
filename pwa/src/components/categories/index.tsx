@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 const Categories: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -9,6 +9,7 @@ const Categories: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [showModal, setShowModal] = useState<boolean>(false);
     const [newCategoryName, setNewCategoryName] = useState<string>('');
+    const navigate = useNavigate();
 
     const fetchCategories = async () => {
         try {
@@ -47,6 +48,31 @@ const Categories: React.FC = () => {
         }
     };
 
+    const handleDeleteCategory = async (categoryId: string) => {
+        if (firestore && categoryId) {
+            const confirmDelete = window.confirm('Are you sure you want to delete this category and all its products?');
+            if (!confirmDelete) return;
+
+            try {
+                // Delete all products in the category
+                const productsRef = collection(firestore, 'products');
+                const q = query(productsRef, where('categoryId', '==', doc(firestore, 'categories', categoryId)));
+                const querySnapshot = await getDocs(q);
+                const deletePromises = querySnapshot.docs.map(productDoc => deleteDoc(doc(firestore, 'products', productDoc.id)));
+                await Promise.all(deletePromises);
+
+                // Delete the category
+                const categoryRef = doc(firestore, 'categories', categoryId);
+                await deleteDoc(categoryRef);
+
+                alert('Category and its products deleted successfully!');
+                fetchCategories(); // Refresh the category list
+            } catch (error) {
+                console.error('Error deleting category or products:', error);
+            }
+        }
+    };
+
     if (loading) {
         return <div className="text-center mt-10">Loading categories...</div>;
     }
@@ -55,27 +81,31 @@ const Categories: React.FC = () => {
         <div className="flex flex-col items-center min-h-screen  p-12 pt-16">
             <h1 className="text-xl font-bold mb-6">Categories</h1>
             {categories.length > 0 ? (
-                <ul className="w-full max-w-md space-y-4">
+                <div className="w-full max-w-md space-y-4">
                     {categories.map(category => (
-                        <li
+                        <div
                             key={category.id}
-                            className="w-full max-w-md flex items-center justify-between p-4 border border-gray-300 rounded-lg bg-white shadow-sm"
+                            className="w-full max-w-md flex justify-between items-center p-4 border-2 border-black rounded-[8px] bg-white hover:cursor-pointer"
+                            onClick={() => navigate(`/categories/${category.id}`)}
                         >
-                            <Link
-                                to={`/categories/${category.id}`}
-                                className="text-lg font-medium text-black"
-                            >
-                                {category.name}
-                            </Link>
-
-                        </li>
+                            <p className='font-semibold text-center flex-grow'>{category.name}</p>
+                            <img
+                                src="/assets/icons/fi-rr-trash-xmark.svg"
+                                alt="Delete"
+                                className="w-5 h-5 cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteCategory(category.id);
+                                }}
+                            />
+                        </div>
                     ))}
-                </ul>
+                </div>
             ) : (
                 <p className="text-gray-500">No categories found.</p>
             )}
             <button
-                className="w-full max-w-md mt-6 py-3 text-white bg-black rounded-lg text-lg font-medium hover:bg-gray-800"
+                className="w-full max-w-md mt-6 py-3 text-white bg-black rounded-[8px] text-lg font-medium"
                 onClick={() => setShowModal(true)}
             >
                 Add
@@ -104,7 +134,7 @@ const Categories: React.FC = () => {
                                 Close
                             </button>
                             <button
-                                className="px-4 py-2 text-white bg-black rounded-lg hover:bg-gray-800"
+                                className="px-4 py-2 text-white bg-black rounded-[8px]"
                                 onClick={handleAddCategory}
                             >
                                 Add
