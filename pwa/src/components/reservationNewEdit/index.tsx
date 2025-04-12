@@ -23,7 +23,21 @@ const ReservationNewEdit: React.FC = () => {
     const [editMode, setEditMode] = useState<boolean>(!reservationId); // Start in edit mode if no reservationId
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedPicture, setSelectedPicture] = useState<string | null>(null); // State for the selected picture
+    const [currentPictureIndex, setCurrentPictureIndex] = useState(0);
 
+    const handleNextPicture = () => {
+        if (product.pictures && product.pictures.length > 0) {
+            setCurrentPictureIndex((prevIndex) => (prevIndex + 1) % product.pictures.length);
+        }
+    };
+
+    const handlePreviousPicture = () => {
+        if (product.pictures && product.pictures.length > 0) {
+            setCurrentPictureIndex((prevIndex) =>
+                (prevIndex - 1 + product.pictures.length) % product.pictures.length
+            );
+        }
+    };
 
     useEffect(() => {
         const fetchReservation = async () => {
@@ -35,10 +49,14 @@ const ReservationNewEdit: React.FC = () => {
                     setReservation({
                         ...data,
                         from: data.from instanceof Timestamp
-                            ? data.from.toDate().toLocaleString() // Convert to local datetime format
+                            ? editMode
+                                ? data.from.toDate().toISOString() // ISO format for edit mode
+                                : data.from.toDate().toLocaleString() // Local datetime format for display mode
                             : '',
                         to: data.to instanceof Timestamp
-                            ? data.to.toDate().toLocaleString() // Convert to local datetime format
+                            ? editMode
+                                ? data.to.toDate().toISOString() // ISO format for edit mode
+                                : data.to.toDate().toLocaleString() // Local datetime format for display mode
                             : '',
                     });
 
@@ -74,7 +92,7 @@ const ReservationNewEdit: React.FC = () => {
         } else {
             setLoading(false);
         }
-    }, [firestore, reservationId, storage]);
+    }, [firestore, reservationId, storage, editMode]);
 
     useEffect(() => {
         const resolvePictures = async () => {
@@ -172,6 +190,12 @@ const ReservationNewEdit: React.FC = () => {
         setSelectedPicture(null); // Close the modal by setting the selected picture to null
     };
 
+    const handleDateTimeChange = (field: string, type: 'date' | 'time', value: string) => {
+        const [date, time] = (reservation[field] || '').split('T');
+        const newDateTime = type === 'date' ? `${value}T${time || ''}` : `${date || ''}T${value}`;
+        setReservation({ ...reservation, [field]: newDateTime });
+    };
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -179,63 +203,79 @@ const ReservationNewEdit: React.FC = () => {
     return (
         <div className="flex flex-col items-center min-h-screen p-6">
             <h1 className="text-xl font-bold mb-6">
-                {editMode && !reservationId ? 'Add New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
+                {editMode && !reservationId ? 'New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
             </h1>
             <div className="w-full max-w-md  p-6 rounded-lg">
+                {/* picturea carousel */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Name:</label>
-                    <p className="text-gray-800">{product.name || 'N/A'}</p>
-                </div>
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Location:</label>
-                    <p className="text-gray-800">
-                        {product.location?._lat !== undefined && product.location?._long !== undefined
-                            ? `Lat: ${product.location._lat}, Long: ${product.location._long}`
-                            : typeof product.location === 'string'
-                            ? product.location
-                            : 'N/A'}
-                    </p>
-                </div>
-                <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Product Pictures:</label>
                     {product.pictures?.length > 0 ? (
-                        <div className="flex space-x-2 overflow-x-auto">
-                            {product.pictures.map((picture: string, index: number) => (
-                                <img
-                                    key={index}
-                                    src={picture}
-                                    alt={`Product ${index}`}
-                                    className="w-24 h-24 object-cover rounded-md shadow-sm cursor-pointer"
-                                    onClick={() => handlePictureClick(picture)} // Open modal on click
-                                />
-                            ))}
+                        <div className="relative w-full max-w-md">
+                            <img
+                                src={product.pictures[currentPictureIndex]}
+                                alt={`Product ${currentPictureIndex}`}
+                                className="w-full h-auto object-cover rounded-md shadow-sm"
+                            />
+                            <button
+                                onClick={handlePreviousPicture}
+                                className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-700 text-white px-2 py-1 rounded-l-md hover:bg-gray-800"
+                            >
+                                ◀
+                            </button>
+                            <button
+                                onClick={handleNextPicture}
+                                className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-700 text-white px-2 py-1 rounded-r-md hover:bg-gray-800"
+                            >
+                                ▶
+                            </button>
                         </div>
                     ) : (
                         <p className="text-gray-500">No pictures available</p>
                     )}
                 </div>
+                                {/* product name */}
+                                <div className="mb-4">
+                    <p className="text-gray-800">{product.name || 'N/A'}</p>
+                </div>
+                {/* from date */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">From:</label>
                     {editMode ? (
-                        <input
-                            type="datetime-local"
-                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={reservation.from}
-                            onChange={(e) => setReservation({ ...reservation, from: e.target.value })}
-                        />
+                        <div className="flex space-x-2">
+                            <input
+                                type="date"
+                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={reservation.from?.split('T')[0] || ''} // Extract date part
+                                onChange={(e) => handleDateTimeChange('from', 'date', e.target.value)}
+                            />
+                            <input
+                                type="time"
+                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={reservation.from?.split('T')[1]?.slice(0, 5) || ''} // Extract time part
+                                onChange={(e) => handleDateTimeChange('from', 'time', e.target.value)}
+                            />
+                        </div>
                     ) : (
                         <p className="text-gray-800">{reservation.from || 'N/A'}</p>
                     )}
                 </div>
+                {/* to date */}
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">To:</label>
                     {editMode ? (
-                        <input
-                            type="datetime-local"
-                            className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={reservation.to}
-                            onChange={(e) => setReservation({ ...reservation, to: e.target.value })}
-                        />
+                        <div className="flex space-x-2">
+                            <input
+                                type="date"
+                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={reservation.to?.split('T')[0] || ''} // Extract date part
+                                onChange={(e) => handleDateTimeChange('to', 'date', e.target.value)}
+                            />
+                            <input
+                                type="time"
+                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={reservation.to?.split('T')[1]?.slice(0, 5) || ''} // Extract time part
+                                onChange={(e) => handleDateTimeChange('to', 'time', e.target.value)}
+                            />
+                        </div>
                     ) : (
                         <p className="text-gray-800">{reservation.to || 'N/A'}</p>
                     )}
@@ -245,44 +285,31 @@ const ReservationNewEdit: React.FC = () => {
                         className="w-full bg-stone-950 text-white py-2 rounded-lg mt-4 hover:bg-gray-900"
                         onClick={handleSave}
                     >
-                        Add Reservation
+                        Save
                     </button>
                 ) : (
-                    <div className="flex space-x-4 mt-4">
+                    <div className="flex flex-column space-x-4 mt-4">
                         <button
                             className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
                             onClick={() => setEditMode(true)}
                         >
-                            Edit
+                            View On Map
+                        </button>
+                        <button
+                            className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                            onClick={() => setEditMode(true)}
+                        >
+                            Edit Reservation
                         </button>
                         <button
                             className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
                             onClick={handleDelete}
                         >
-                            Delete
+                            Cancel Reservation
                         </button>
                     </div>
                 )}
             </div>
-
-            {/* Modal for displaying the selected picture */}
-            {selectedPicture && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="relative bg-white rounded-lg shadow-lg p-4">
-                        <button
-                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                            onClick={closeModal}
-                        >
-                            ✖
-                        </button>
-                        <img
-                            src={selectedPicture}
-                            alt="Selected"
-                            className="max-w-full max-h-[80vh] object-contain rounded-md"
-                        />
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
