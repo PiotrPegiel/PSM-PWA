@@ -96,11 +96,11 @@ const Home: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto text-center px-4 p-12">
-            <h1 className="text-2xl font-bold mb-6">Current Reservations</h1>
+        <div className="container mx-auto text-center px-4 p-12 font-inter">
+            <h1 className="text-2xl font-semibold mb-6">Current Reservations</h1>
             <button
                 onClick={() => navigate('/new-reservation')}
-                className="bg-black text-white py-2 px-4 rounded-md w-full max-w-md mb-6"
+                className="bg-black text-white py-2 px-4 rounded-[8px] w-full max-w-md mb-6"
             >
                 Create reservation
             </button>
@@ -109,7 +109,7 @@ const Home: React.FC = () => {
                     {reservations.map(reservation => (
                         <div
                             key={reservation.id}
-                            className="w-full max-w-md border border-gray-300 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                            className="w-full max-w-md border-2 border-black rounded-[8px] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                             onClick={() => navigate(`/reservations/${reservation.id}`)}
                         >
                             <h5 className="text-lg font-semibold mb-2">
