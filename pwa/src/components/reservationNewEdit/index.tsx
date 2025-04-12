@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { doc, getDoc, setDoc, deleteDoc, DocumentReference, Timestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, getDownloadURL } from 'firebase/storage';
+import { useSwipeable } from 'react-swipeable';
 
 const ReservationNewEdit: React.FC = () => {
     const { firestore, storage, currentUser } = useFirebase() || {}; // Include currentUser from FirebaseContext
@@ -267,20 +268,29 @@ const ReservationNewEdit: React.FC = () => {
         new Date(formatDateForComparison(new Date())).getTime()
         : false;
 
+    const swipeHandlers = useSwipeable({
+        onSwipedLeft: handleNextPicture, // Swipe left to go to next picture
+        onSwipedRight: handlePreviousPicture, // Swipe right to go to previous picture
+        trackMouse: true, // Allow swiping with mouse on desktop
+    });
+
     if (loading) {
         return <div>Loading...</div>;
     }
 
     return (
         <div className="flex flex-col items-center min-h-screen p-6">
-            <h1 className="text-xl font-bold mb-6">
+            <h1 className="text-xl font-semibold mb-6">
                 {editMode && !reservationId ? 'New Reservation' : editMode ? 'Edit Reservation' : 'Reservation Details'}
             </h1>
             <div className="w-full max-w-md p-6 rounded-lg">
                 {/* picture carousel */}
                 <div className="mb-4">
                     {product.pictures?.length > 0 ? (
-                        <div className="relative w-full max-w-md">
+                        <div
+                            className="relative w-full max-w-md border-2 border-black rounded-[8px]"
+                            {...swipeHandlers} // Attach swipe handlers to the carousel
+                        >
                             <img
                                 src={product.pictures[currentPictureIndex]}
                                 alt={`Product ${currentPictureIndex}`}
@@ -288,15 +298,15 @@ const ReservationNewEdit: React.FC = () => {
                             />
                             <button
                                 onClick={handlePreviousPicture}
-                                className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-700 text-white px-2 py-1 rounded-l-md hover:bg-gray-800"
+                                className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-0 text-white px-2 py-1 rounded-l-md hover:bg-gray-100"
                             >
-                                ◀
+                                <img src='/assets/icons/fi-rr-angle-left.svg' alt="Previous" className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={handleNextPicture}
-                                className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-700 text-white px-2 py-1 rounded-r-md hover:bg-gray-800"
+                                className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-0 text-white px-2 py-1 rounded-r-md hover:bg-gray-100"
                             >
-                                ▶
+                                <img src='/assets/icons/fi-rr-angle-right.svg' alt="Previous" className="w-4 h-4" />
                             </button>
                         </div>
                     ) : (
@@ -304,23 +314,23 @@ const ReservationNewEdit: React.FC = () => {
                     )}
                 </div>
                 {/* product name */}
-                <div className="mb-4">
+                <div className="mb-4 text-2xl font-semibold mb-6">
                     <p className="text-gray-800">{product.name || 'N/A'}</p>
                 </div>
                 {/* from date */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">From:</label>
+                    <label className="block text-md font-semibold text-gray-700 mb-2">From:</label>
                     {editMode ? (
                         <div className="flex space-x-2">
                             <input
                                 type="date"
-                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-1/2 border border-gray-300 rounded-[8px] p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={reservation.from?.split('T')[0] || ''} // Extract date part
                                 onChange={(e) => handleDateTimeChange('from', 'date', e.target.value)}
                             />
                             <input
                                 type="time"
-                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-1/2 border border-gray-300 rounded-[8px] p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={reservation.from?.split('T')[1]?.slice(0, 5) || ''} // Extract time part
                                 onChange={(e) => handleDateTimeChange('from', 'time', e.target.value)}
                             />
@@ -331,18 +341,18 @@ const ReservationNewEdit: React.FC = () => {
                 </div>
                 {/* to date */}
                 <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">To:</label>
+                    <label className="block text-md font-semibold text-gray-700 mb-2">To:</label>
                     {editMode ? (
                         <div className="flex space-x-2">
                             <input
                                 type="date"
-                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-1/2 border border-gray-300 rounded-[8px] p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={reservation.to?.split('T')[0] || ''} // Extract date part
                                 onChange={(e) => handleDateTimeChange('to', 'date', e.target.value)}
                             />
                             <input
                                 type="time"
-                                className="w-1/2 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-1/2 border border-gray-300 rounded-[8px] p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={reservation.to?.split('T')[1]?.slice(0, 5) || ''} // Extract time part
                                 onChange={(e) => handleDateTimeChange('to', 'time', e.target.value)}
                             />
@@ -353,7 +363,7 @@ const ReservationNewEdit: React.FC = () => {
                 </div>
                 {editMode ? (
                     <button
-                        className="w-full bg-stone-950 text-white py-2 rounded-lg mt-4 hover:bg-gray-900"
+                        className="w-full bg-stone-950 text-white py-2 rounded-[8px] mt-4 hover:bg-gray-900"
                         onClick={handleSave}
                     >
                         Save
@@ -361,7 +371,7 @@ const ReservationNewEdit: React.FC = () => {
                 ) : (
                     <div className="flex flex-column space-x-4 mt-4">
                         <button
-                        className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                        className="flex-1 bg-blue-500 text-white py-2 rounded-[8px] hover:bg-blue-600"
                         onClick={() => navigate(`/reservations/${reservationId}/map`)}
                     >
                         View On Map
@@ -369,13 +379,13 @@ const ReservationNewEdit: React.FC = () => {
                         {!isPastReservation && (
                             <>
                                 <button
-                                    className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                                    className="flex-1 bg-blue-500 text-white py-2 rounded-[8px] hover:bg-blue-600"
                                     onClick={() => setEditMode(true)}
                                 >
                                     Edit Reservation
                                 </button>
                                 <button
-                                    className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
+                                    className="flex-1 bg-red-500 text-white py-2 rounded-[8px] hover:bg-red-600"
                                     onClick={handleDelete}
                                 >
                                     Cancel Reservation

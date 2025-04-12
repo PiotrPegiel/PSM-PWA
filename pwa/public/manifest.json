@@ -1,14 +1,14 @@
 {
-  "short_name": "ReactPWA",
-  "name": "React Firebase PWA",
+  "short_name": "Reservix",
+  "name": "Reservix",
   "icons": [
     {
-      "src": "icon-192x192.png",
-      "sizes": "192x192",
+      "src": "/assets/icons/icon-64x64.png",
+      "sizes": "64x64",
       "type": "image/png"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "/assets/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
