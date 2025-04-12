@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ref, deleteObject } from 'firebase/storage';
 
 const ProductsByCategory: React.FC = () => {
-    const { firestore } = useFirebase() || {};
+    const { firestore, storage } = useFirebase() || {};
     const { categoryId } = useParams<{ categoryId: string }>();
     const navigate = useNavigate();
     const [products, setProducts] = useState<any[]>([]);
@@ -59,24 +60,31 @@ const ProductsByCategory: React.FC = () => {
         }
     };
 
-    const handleDeleteCategory = async () => {
-        if (firestore && categoryId) {
+    const handleDeleteProduct = async (productId: string, pictures: string[]) => {
+        if (firestore && productId) {
+            const confirmDelete = window.confirm('Are you sure you want to delete this product?');
+            if (!confirmDelete) return;
+
             try {
-                // Delete all products in the category
-                const productsRef = collection(firestore, 'products');
-                const q = query(productsRef, where('categoryId', '==', doc(firestore, 'categories', categoryId)));
-                const querySnapshot = await getDocs(q);
-                const deletePromises = querySnapshot.docs.map(productDoc => deleteDoc(doc(firestore, 'products', productDoc.id)));
-                await Promise.all(deletePromises);
+                // Delete all associated pictures from Firebase Storage
+                if (pictures && pictures.length > 0) {
+                    await Promise.all(
+                        pictures.map(async (path) => {
+                            const storageRef = ref(storage, path);
+                            await deleteObject(storageRef);
+                        })
+                    );
+                }
 
-                // Delete the category
-                const categoryRef = doc(firestore, 'categories', categoryId);
-                await deleteDoc(categoryRef);
+                // Delete the product document from Firestore
+                const productRef = doc(firestore, 'products', productId);
+                await deleteDoc(productRef);
 
-                alert('Category and its products deleted successfully!');
-                navigate('/categories');
+                setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+                alert('Product and associated pictures deleted successfully!');
             } catch (error) {
-                console.error('Error deleting category or products:', error);
+                console.error('Error deleting product or pictures:', error);
+                alert('Failed to delete product or associated pictures.');
             }
         }
     };
@@ -89,26 +97,24 @@ const ProductsByCategory: React.FC = () => {
         <div className="container mx-auto p-14">
     <div className="flex flex-grow mb-2 items-center">
         {editMode ? (
-            <div className="w-full space-y-2">
+            <div className="w-full flex space-x-5 items-center">
                 <input
                     type="text"
-                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    className="flex-grow border border-gray-300 rounded px-2 py-1"
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                 />
-                <div className="flex space-x-2">
-                    <button
-                        className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                <div className="flex space-x-5">
+                    <img
+                        className="w-5 h-5 hover:cursor-pointer"
+                        src="/assets/icons/fi-rr-check.svg"
                         onClick={handleSaveCategoryName}
-                    >
-                        Save
-                    </button>
-                    <button
-                        className="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                        onClick={handleDeleteCategory}
-                    >
-                        Delete
-                    </button>
+                    />
+                    <img
+                        className="w-5 h-5 hover:cursor-pointer"
+                        src="/assets/icons/fi-rr-cross.svg"
+                        onClick={() => setEditMode(false)}
+                    />
                 </div>
             </div>
         ) : (
@@ -117,20 +123,30 @@ const ProductsByCategory: React.FC = () => {
                 <h1 className="text-xl font-bold">{categoryName}</h1>
                 <img
                     src="/assets/icons/fi-rr-edit.svg"
-                    className="w-5 h-5"
+                    className="w-5 h-5 hover:cursor-pointer"
                     onClick={() => setEditMode(true)}
                 />
                 </div>
         )}
     </div>
-    <div className="space-y-4">
+    <div className="space-y-4 mt-5">
         {products.map(product => (
             <div
                 key={product.id}
-                className="flex justify-center items-center border-2 border-black rounded-[8px] p-2 hover:cursor-pointer"
-                onClick = {() => navigate(`/categories/${categoryId}/products/${product.id}`)}
+                className="flex justify-between items-center border-2 border-black rounded-[8px] p-2 hover:cursor-pointer"
+                onClick={() => navigate(`/categories/${categoryId}/products/${product.id}`)}
             >
-                    <p>{product.name}</p>
+                <div className="w-5 h-5"></div>
+                <p className='font-semibold'>{product.name}</p>
+                <img
+                    src="/assets/icons/fi-rr-trash-xmark.svg"
+                    alt="Delete"
+                    className="w-5 h-5 cursor-pointer"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProduct(product.id, product.pictures || []);
+                    }}
+                />
             </div>
         ))}
     </div>
