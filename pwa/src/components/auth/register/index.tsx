@@ -27,75 +27,60 @@ const Register = () => {
         <>
             {userLoggedIn && (<Navigate to={'/home'} replace={true} />)}
 
-            <main className="w-full h-screen flex self-center place-content-center place-items-center">
-                <div className="w-96 text-gray-600 space-y-5 p-4 rounded-xl">
-                    <div className="text-center mb-6">
-                        <div className="mt-2">
-                            <h3 className="text-gray-800 text-xl font-semibold sm:text-2xl">Create a New Account</h3>
-                        </div>
-
-                    </div>
-                    <form
-                        onSubmit={onSubmit}
-                        className="space-y-4"
-                    >
+            <main className="w-full h-screen flex items-center justify-center bg-white">
+                <div className="w-full max-w-md p-6">
+                    <h1 className="text-[24px] font-semibold text-center mb-8">Rezervix</h1>
+                    <h2 className="text-lg font-semibold text-center mb-4">Create a New Account</h2>
+                    <form onSubmit={onSubmit} className="space-y-4">
                         <div>
-                            <label className="text-sm text-gray-600 font-bold">
-                                Email
-                            </label>
                             <input
                                 type="email"
-                                autoComplete='email'
+                                placeholder="email@domain.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
-                                value={email} onChange={(e) => { setEmail(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:indigo-600 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
-
                         <div>
-                            <label className="text-sm text-gray-600 font-bold">
-                                Password
-                            </label>
                             <input
-                                disabled={isRegistering}
                                 type="password"
-                                autoComplete='new-password'
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
-                                value={password} onChange={(e) => { setPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-indigo-600 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
-
                         <div>
-                            <label className="text-sm text-gray-600 font-bold">
-                                Confirm Password
-                            </label>
                             <input
-                                disabled={isRegistering}
                                 type="password"
-                                autoComplete='off'
+                                placeholder="Confirm Password"
+                                value={confirmPassword}
+                                onChange={(e) => setconfirmPassword(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
-                                value={confirmPassword} onChange={(e) => { setconfirmPassword(e.target.value) }}
-                                className="w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-indigo-600 shadow-sm rounded-lg transition duration-300"
                             />
                         </div>
-
-                        {errorMessage && (
-                            <span className='text-red-600 font-bold'>{errorMessage}</span>
-                        )}
-
+                        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                         <button
                             type="submit"
                             disabled={isRegistering}
-                            className={`w-full px-4 py-2 text-white font-medium rounded-lg ${isRegistering ? 'bg-gray-300 cursor-not-allowed' : 'bg-stone-950 hover:bg-gray-900 hover:shadow-xl transition duration-300'}`}
+                            className={`w-full py-2 text-white font-medium rounded-[8px] ${
+                                isRegistering
+                                    ? 'bg-gray-300 cursor-not-allowed'
+                                    : 'bg-black hover:bg-gray-800'
+                            }`}
                         >
                             {isRegistering ? 'Signing Up...' : 'Sign Up'}
                         </button>
-                        <div className="text-sm text-center">
-                            Already have an account? {'   '}
-                            <Link to={'/login'} className="text-center text-sm hover:underline font-bold">Continue</Link>
-                        </div>
                     </form>
+                    <p className="text-center text-sm mt-4">
+                        Already have an account?{' '}
+                        <Link to="/login" className="text-blue-500 hover:underline">
+                            Continue
+                        </Link>
+                    </p>
                 </div>
             </main>
         </>

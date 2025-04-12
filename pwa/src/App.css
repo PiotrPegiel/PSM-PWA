@@ -6,3 +6,12 @@
 body {
     font-family: "Inter", sans-serif;
 }
+
+/* Apply consistent border radius globally */
+input, button, select, textarea {
+    border-radius: 8px; /* Match the login page border radius */
+}
+
+button {
+    font-weight: 500; /* Match the login page button font weight */
+}
