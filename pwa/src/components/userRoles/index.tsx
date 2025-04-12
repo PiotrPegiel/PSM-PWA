@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { firestore } from "../../firebase/firebase";
+import Header from "../header";
 
 interface UserRole {
   userId: string;
@@ -50,6 +51,7 @@ const UserRoles: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center min-h-screen  p-12">
+      {<Header />}
       <h1 className="text-2xl font-bold text-center mb-6">Users</h1>
       <div className="space-y-4">
         {users.map((user) => (
