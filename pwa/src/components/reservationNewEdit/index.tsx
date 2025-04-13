@@ -238,14 +238,6 @@ const ReservationNewEdit: React.FC = () => {
         }
     };
 
-    const handlePictureClick = (picture: string) => {
-        setSelectedPicture(picture); // Set the clicked picture as the selected picture
-    };
-
-    const closeModal = () => {
-        setSelectedPicture(null); // Close the modal by setting the selected picture to null
-    };
-
     const handleDateTimeChange = (field: string, type: 'date' | 'time', value: string) => {
         const [date, time] = (reservation[field] || '').split('T');
         const newDateTime = type === 'date' ? `${value}T${time || ''}` : `${date || ''}T${value}`;
@@ -380,12 +372,14 @@ const ReservationNewEdit: React.FC = () => {
                         >
                             Save
                         </button>
-                        <button
-                        className="w-full bg-white border-2 border-black text-black py-2 rounded-[8px] mt-3"
-                        onClick={() => setEditMode(false)}
-                        >
-                            Calcel
-                        </button>
+                        {reservationId && (
+                            <button
+                                className="w-full bg-white border-2 border-black text-black py-2 rounded-[8px] mt-3"
+                                onClick={() => setEditMode(false)}
+                            >
+                                Calcel
+                            </button>
+                        )}
                     </>
                 ) : (
                     <div className="flex flex-column mt- gap-3">
