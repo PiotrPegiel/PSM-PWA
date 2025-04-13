@@ -16,12 +16,39 @@ declare module 'leaflet' {
     }
 }
 
-
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
     iconUrl: require('leaflet/dist/images/marker-icon.png'),
     shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
+
+const SnackBar: React.FC<{ message: string; type: "success" | "error"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      setVisible(true); // Trigger slide-in animation
+  
+      const timer = setTimeout(() => {
+        setVisible(false); // Trigger slide-out animation
+        setTimeout(onClose, 300); // Wait for animation to complete before closing
+      }, 3000); // Snack bar disappears after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [onClose]);
+  
+    return (
+      <div
+        className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        } ${type === "success" ? "bg-green-500" : "bg-red-500"}`}
+      >
+        <span>{message}</span>
+        <button className="ml-4 text-white" onClick={onClose}>
+          <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+        </button>
+      </div>
+    );
+  };
 
 const MapView: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -31,14 +58,11 @@ const MapView: React.FC = () => {
     const { reservationId, categoryId } = useParams<{ reservationId: string; categoryId: string }>();
     const [product, setProduct] = useState<any>({});
     const [reservation, setReservation] = useState<any>({});
-
     const [latitude, setLatitude] = useState<number | ''>('');
     const [longitude, setLongitude] = useState<number | ''>('');
-    
     const storage = getStorage();
-    
-
     const mapRef = useRef<any>(null);
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" } | null>(null);    
 
     useEffect(() => {
             if (navigator.geolocation) {
@@ -50,11 +74,11 @@ const MapView: React.FC = () => {
                     (error) => {
                         console.error('Error fetching location:', error);
                         setCurrentLocation({ lat: 0, lng: 0 });
-                        alert('Unable to fetch your location. Defaulting to [0, 0].');
+                        setSnackBar({ message: "Unable to fetch your location. Defaulting to [0, 0].", type: "error" });
                     }
                 );
             } else {
-                alert('Geolocation is not supported by your browser.');
+                setSnackBar({ message: "Geolocation is not supported by your browser.", type: "error" });
             }
         }, []);
 
