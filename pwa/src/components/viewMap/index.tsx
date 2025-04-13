@@ -221,6 +221,13 @@ const MapView: React.FC = () => {
                     <Popup>Product Location</Popup>
                 </Marker>
             )}
+            {snackBar && (
+                <SnackBar
+                message={snackBar.message}
+                type={snackBar.type}
+                onClose={() => setSnackBar(null)}
+                />
+            )}
         </MapContainer>
     );
 };

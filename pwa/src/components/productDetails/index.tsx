@@ -22,7 +22,33 @@ L.Icon.Default.mergeOptions({
     shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-
+const SnackBar: React.FC<{ message: string; type: "success" | "error" | "warning"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      setVisible(true); // Trigger slide-in animation
+  
+      const timer = setTimeout(() => {
+        setVisible(false); // Trigger slide-out animation
+        setTimeout(onClose, 300); // Wait for animation to complete before closing
+      }, 3000); // Snack bar disappears after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [onClose]);
+  
+    return (
+      <div
+        className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        } ${type === "success" ? "bg-green-500" : type == "warning" ? "bg-orange-500" : "bg-red-500"}`}
+      >
+        <span>{message}</span>
+        <button className="ml-4 text-white" onClick={onClose}>
+          <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+        </button>
+      </div>
+    );
+  };
 
 const ProductDetails: React.FC = () => {
     const { firestore } = useFirebase() || {};
@@ -37,7 +63,7 @@ const ProductDetails: React.FC = () => {
     const [latitude, setLatitude] = useState<number | ''>('');
     const [longitude, setLongitude] = useState<number | ''>('');
     const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
-
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" | "warning" } | null>(null); 
     const storage = getStorage();
 
 
@@ -51,11 +77,11 @@ const ProductDetails: React.FC = () => {
                 (error) => {
                     console.error('Error fetching location:', error);
                     setCurrentLocation({ lat: 0, lng: 0 });
-                    alert('Unable to fetch your location. Defaulting to [0, 0].');
+                    setSnackBar({ message: "Unable to fetch your location. Defaulting to [0, 0].", type: "warning" });
                 }
             );
         } else {
-            alert('Geolocation is not supported by your browser.');
+            setSnackBar({ message: "Geolocation is not supported by your browser.", type: "error" });
         }
     }, []);
 
@@ -146,7 +172,7 @@ const ProductDetails: React.FC = () => {
                 pictures: [...(product.pictures || []), ...uploadedPaths],
                 categoryId: doc(firestore, 'categories', categoryId || ''),
             });
-            alert('Product saved successfully!');
+            setSnackBar({ message: "Product saved successfully!", type: "success" });
             navigate(`/categories/${categoryId}`);
         }
     };
@@ -156,7 +182,7 @@ const ProductDetails: React.FC = () => {
         if (files) {
             const validFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
             if (validFiles.length !== files.length) {
-                alert('Only image files are allowed.');
+                setSnackBar({ message: "Only image files are allowed.", type: "error" });
             }
             setNewPictures((prev) => [...prev, ...validFiles]);
             e.target.value = ''; // Clear the upload field
@@ -183,7 +209,7 @@ const ProductDetails: React.FC = () => {
                         const file = new File([blob], `captured-${Date.now()}.jpg`, { type: 'image/jpeg' });
                         setNewPictures((prev) => [...prev, file]);
                     } else {
-                        alert('Captured file is not a valid image.');
+                        setSnackBar({ message: "Captured file is not a valid image.", type: "error" });
                     }
                 });
 
@@ -260,7 +286,7 @@ const ProductDetails: React.FC = () => {
             document.body.appendChild(modal);
         } catch (error) {
             console.error('Error accessing camera:', error);
-            alert('Unable to access the camera.');
+            setSnackBar({ message: "Unable to access the camera.", type: "error" });
         }
     };
 
@@ -304,10 +330,10 @@ const ProductDetails: React.FC = () => {
             );
             setPictures(pictureUrls);
 
-            alert('Picture deleted successfully!');
+            setSnackBar({ message: "Picture deleted successfully!", type: "success" });
         } catch (error) {
             console.error('Error deleting picture:', error);
-            alert('Failed to delete picture.');
+            setSnackBar({ message: "Failed to delete picture.", type: "error" });
         }
     };
 
@@ -494,6 +520,13 @@ const ProductDetails: React.FC = () => {
                 
             )}
             </div>
+            {snackBar && (
+                <SnackBar
+                message={snackBar.message}
+                type={snackBar.type}
+                onClose={() => setSnackBar(null)}
+                />
+            )}
         </div>
     );
 };

@@ -4,6 +4,34 @@ import { collection, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } 
 import { useParams, useNavigate } from 'react-router-dom';
 import { ref, deleteObject } from 'firebase/storage';
 
+const SnackBar: React.FC<{ message: string; type: "success" | "error"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      setVisible(true); // Trigger slide-in animation
+  
+      const timer = setTimeout(() => {
+        setVisible(false); // Trigger slide-out animation
+        setTimeout(onClose, 300); // Wait for animation to complete before closing
+      }, 3000); // Snack bar disappears after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [onClose]);
+  
+    return (
+      <div
+        className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        } ${type === "success" ? "bg-green-500" : "bg-red-500"}`}
+      >
+        <span>{message}</span>
+        <button className="ml-4 text-white" onClick={onClose}>
+          <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+        </button>
+      </div>
+    );
+  };
+
 const ProductsByCategory: React.FC = () => {
     const { firestore, storage } = useFirebase() || {};
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -13,6 +41,8 @@ const ProductsByCategory: React.FC = () => {
     const [newCategoryName, setNewCategoryName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [editMode, setEditMode] = useState<boolean>(false);
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" } | null>(null);    
+    
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -53,7 +83,7 @@ const ProductsByCategory: React.FC = () => {
                 await updateDoc(categoryRef, { name: newCategoryName });
                 setCategoryName(newCategoryName);
                 setEditMode(false);
-                alert('Category name updated successfully!');
+                setSnackBar({ message: "Category name updated successfully!", type: "success" });
             } catch (error) {
                 console.error('Error updating category name:', error);
             }
@@ -81,10 +111,10 @@ const ProductsByCategory: React.FC = () => {
                 await deleteDoc(productRef);
 
                 setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
-                alert('Product and associated pictures deleted successfully!');
+                setSnackBar({ message: "Product and associated pictures deleted successfully!", type: "success" });
             } catch (error) {
                 console.error('Error deleting product or pictures:', error);
-                alert('Failed to delete product or associated pictures.');
+                setSnackBar({ message: "Failed to delete product or associated pictures.", type: "error" });
             }
         }
     };
@@ -168,6 +198,13 @@ const ProductsByCategory: React.FC = () => {
             >
                 Add
             </button>
+            {snackBar && (
+                <SnackBar
+                message={snackBar.message}
+                type={snackBar.type}
+                onClose={() => setSnackBar(null)}
+                />
+            )}
         </div>
     );
 };

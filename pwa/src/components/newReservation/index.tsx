@@ -3,6 +3,34 @@ import { useFirebase } from '../../contexts/FirebaseContext';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
+const SnackBar: React.FC<{ message: string; type: "success" | "error" | "warning"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      setVisible(true); // Trigger slide-in animation
+  
+      const timer = setTimeout(() => {
+        setVisible(false); // Trigger slide-out animation
+        setTimeout(onClose, 300); // Wait for animation to complete before closing
+      }, 3000); // Snack bar disappears after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [onClose]);
+  
+    return (
+      <div
+        className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        } ${type === "success" ? "bg-green-500" : type == "warning" ? "bg-orange-500" : "bg-red-500"}`}
+      >
+        <span>{message}</span>
+        <button className="ml-4 text-white" onClick={onClose}>
+          <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+        </button>
+      </div>
+    );
+  };
+
 const NewReservation: React.FC = () => {
     const { firestore, currentUser } = useFirebase() || {};
     const [categories, setCategories] = useState<any[]>([]);
@@ -10,6 +38,7 @@ const NewReservation: React.FC = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const navigate = useNavigate();
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" | "warning" } | null>(null); 
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -57,7 +86,7 @@ const NewReservation: React.FC = () => {
 
     const handleProductClick = async (product: any) => {
         if (!currentUser) {
-            alert("User not authenticated.");
+            setSnackBar({ message: "User not authenticated.", type: "error" });
             return;
         }
 
@@ -73,7 +102,7 @@ const NewReservation: React.FC = () => {
             navigate(`/reservations/new`, { state: { reservation: newReservation } });
         } catch (error) {
             console.error("Error preparing reservation:", error);
-            alert("Failed to prepare reservation.");
+            setSnackBar({ message: "Failed to prepare reservation.", type: "error" });
         }
     };
 
@@ -121,6 +150,13 @@ const NewReservation: React.FC = () => {
                     </ul>
                 ) : (
                     <p>{selectedCategory ? 'No products available for this category.' : 'Please select a category.'}</p>
+                )}
+                {snackBar && (
+                    <SnackBar
+                        message={snackBar.message}
+                        type={snackBar.type}
+                        onClose={() => setSnackBar(null)}
+                    />
                 )}
             </div>
     );
