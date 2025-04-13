@@ -373,12 +373,20 @@ const ReservationNewEdit: React.FC = () => {
                     )}
                 </div>
                 {editMode ? (
-                    <button
-                        className="w-full bg-stone-950 text-white py-2 rounded-[8px] mt-4 hover:bg-gray-900"
-                        onClick={handleSave}
-                    >
-                        Save
-                    </button>
+                    <>
+                        <button
+                            className="w-full bg-stone-950 text-white py-2 rounded-[8px] mt-4"
+                            onClick={handleSave}
+                        >
+                            Save
+                        </button>
+                        <button
+                        className="w-full bg-white border-2 border-black text-black py-2 rounded-[8px] mt-3"
+                        onClick={() => setEditMode(false)}
+                        >
+                            Calcel
+                        </button>
+                    </>
                 ) : (
                     <div className="flex flex-column mt- gap-3">
                         <button
