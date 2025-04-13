@@ -54,8 +54,7 @@ const UserRoles: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen p-12">
-      {<Header />}
+    <div className="flex w-full  flex-col items-center min-h-screen p-12">
       <div className="relative w-full max-w-md mb-6">
                 <button
                     className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
@@ -65,24 +64,25 @@ const UserRoles: React.FC = () => {
                 </button>
                 <h1 className="text-2xl font-bold text-center">Users</h1>
             </div>
-      <div className="space-y-4">
+      <div className="space-y-4 w-full max-w-md mx-4">
         {users.map((user) => (
           <div
             key={user.userId}
-            className="border rounded-lg p-4 border bg-white"
+            className="w-full max-w-md border-2 border-black rounded-[8px] p-4 shadow-sm transition-shadow cursor-pointer text-center"
           >
             <p className="text-sm font-medium">
               <strong>User ID:</strong> {user.userId}
             </p>
             <p className="text-sm font-medium">
-              <strong>Email:</strong> {user.email}
-            </p>
+                <strong>Email:</strong> {user.email}
+              </p>
             {user.name && (
               <p className="text-sm font-medium">
                 <strong>Name:</strong> {user.name}
               </p>
+              
             )}
-            <div className="mt-4">
+            <div className="mt-2">
               <label
                 htmlFor={`role-${user.userId}`}
                 className="block text-sm font-medium"

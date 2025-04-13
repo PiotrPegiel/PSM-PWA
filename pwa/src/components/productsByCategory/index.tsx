@@ -98,9 +98,9 @@ const ProductsByCategory: React.FC = () => {
             <div className="w-full flex justify-center items-center space-x-4 mb-6">
                 {editMode ? (
                     <div className="w-full flex space-x-5 items-center">
-                                                    <button
-                            className=""
-                            onClick={() => navigate(-1)} 
+                            <button
+                                className=""
+                                onClick={() => navigate(-1)} 
                             >
                                 <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
                             </button>

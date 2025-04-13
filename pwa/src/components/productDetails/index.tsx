@@ -151,32 +151,6 @@ const ProductDetails: React.FC = () => {
         }
     };
 
-    const handleDelete = async () => {
-        if (firestore && productId) {
-            try {
-                // Delete all associated pictures from Firebase Storage
-                if (product.pictures && product.pictures.length > 0) {
-                    await Promise.all(
-                        product.pictures.map(async (path: string) => {
-                            const storageRef = ref(storage, path);
-                            await deleteObject(storageRef);
-                        })
-                    );
-                }
-
-                // Delete the product document from Firestore
-                const productRef = doc(firestore, 'products', productId);
-                await deleteDoc(productRef);
-
-                alert('Product and associated pictures deleted successfully!');
-                navigate(`/categories/${categoryId}`);
-            } catch (error) {
-                console.error('Error deleting product or pictures:', error);
-                alert('Failed to delete product or associated pictures.');
-            }
-        }
-    };
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files; // Extract files to a variable
         if (files) {
@@ -229,23 +203,60 @@ const ProductDetails: React.FC = () => {
             modal.style.zIndex = '1000';
 
             const captureButton = document.createElement('button');
-            captureButton.textContent = 'Capture';
             captureButton.style.position = 'absolute';
             captureButton.style.bottom = '20px';
-            captureButton.style.padding = '10px 20px';
-            captureButton.style.backgroundColor = '#28a745';
-            captureButton.style.color = '#fff';
-            captureButton.style.border = 'none';
-            captureButton.style.borderRadius = '5px';
+            captureButton.style.left = '50%';
+            captureButton.style.transform = 'translateX(-60px)';
+            captureButton.style.width = '50px';
+            captureButton.style.height = '50px';
+            captureButton.style.backgroundColor = 'white';
+            captureButton.style.border = '2px solid black';
+            captureButton.style.borderRadius = '8px';
             captureButton.style.cursor = 'pointer';
+            captureButton.style.display = 'flex';
+            captureButton.style.justifyContent = 'center';
+            captureButton.style.alignItems = 'center';
+
+            const checkIcon = document.createElement('img');
+            checkIcon.src = '/assets/icons/fi-rr-check.svg';
+            checkIcon.style.width = '24px';
+            checkIcon.style.height = '24px';
+            captureButton.appendChild(checkIcon);
 
             captureButton.onclick = () => {
                 capturePicture();
                 document.body.removeChild(modal);
             };
 
+            const cancelButton = document.createElement('button');
+            cancelButton.style.position = 'absolute';
+            cancelButton.style.bottom = '20px';
+            cancelButton.style.right = '50%';
+            cancelButton.style.transform = 'translateX(60px)';
+            cancelButton.style.width = '50px';
+            cancelButton.style.height = '50px';
+            cancelButton.style.backgroundColor = 'white';
+            cancelButton.style.border = '2px solid black';
+            cancelButton.style.borderRadius = '8px';
+            cancelButton.style.cursor = 'pointer';
+            cancelButton.style.display = 'flex';
+            cancelButton.style.justifyContent = 'center';
+            cancelButton.style.alignItems = 'center';
+
+            const cancelIcon = document.createElement('img');
+            cancelIcon.src = '/assets/icons/fi-rr-cross.svg';
+            cancelIcon.style.width = '24px';
+            cancelIcon.style.height = '24px';
+            cancelButton.appendChild(cancelIcon);
+
+            cancelButton.onclick = () => {
+                stream.getTracks().forEach((track) => track.stop());
+                document.body.removeChild(modal);
+            };
+
             modal.appendChild(video);
             modal.appendChild(captureButton);
+            modal.appendChild(cancelButton);
             document.body.appendChild(modal);
         } catch (error) {
             console.error('Error accessing camera:', error);
@@ -256,10 +267,16 @@ const ProductDetails: React.FC = () => {
     const getPreviewURL = (file: File) => URL.createObjectURL(file);
 
     const handleRemoveQueuedPicture = (index: number) => {
+        const confirmDelete = window.confirm('Are you sure you want to delete this picture?');
+        if (!confirmDelete) return;
+
         setNewPictures((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleDeletePicture = async (path: string) => {
+        const confirmDelete = window.confirm('Are you sure you want to delete this picture?');
+        if (!confirmDelete) return;
+
         try {
             const storageRef = ref(storage, path);
             await deleteObject(storageRef);
@@ -294,40 +311,31 @@ const ProductDetails: React.FC = () => {
         }
     };
 
-    const handleLatitudeChange = (value: string) => {
-        const parsedValue = value === '' ? '' : parseFloat(value);
-        if (parsedValue === '' || (parsedValue >= -90 && parsedValue <= 90)) {
-            setLatitude(parsedValue === "" ? 0 : parsedValue);
-        } else {
-            alert('Latitude must be between -90 and 90.');
-        }
-    };
-
-    const handleLongitudeChange = (value: string) => {
-        const parsedValue = value === '' ? '' : parseFloat(value);
-        if (parsedValue === '' || (parsedValue >= -180 && parsedValue <= 180)) {
-            setLongitude(parsedValue === "" ? 0 : parsedValue);
-        } else {
-            alert('Longitude must be between -180 and 180.');
-        }
-    };
-
     if (loading) {
         return <div>Loading...</div>;
     }
 
     return (
         <div className="flex flex-col items-center justify-start min-h-screen overflow-y-auto pt-12">
-            <h1 className="text-xl font-semibold mb-6">
-                {editMode && !productId ? 'New Product' : editMode ? 'Edit Product' : 'Product Details'}
-            </h1>
+            <div className='w-full max-w-sm flex justify-between items-center space-x-4 mb-12'>
+                <button
+                    className=""
+                    onClick={() => navigate(-1)} 
+                >
+                    <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                </button>
+                <h1 className="text-xl font-semibold">
+                    {editMode && !productId ? 'New Product' : editMode ? 'Edit Product' : 'Product Details'}
+                </h1>
+                <div className='w-6 h-6'></div>
+            </div>
             <div className="w-full max-w-sm">
                 {/* Name Input */}
-                <div className="mb-2 mx-1">
+                <div className="mx-1">
                     {editMode ? (
                         <input
                             type="text"
-                            className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full border-2 border-black rounded-[8px] px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={product.name || ''}
                             onChange={(e) => setProduct({ ...product, name: e.target.value })}
                             placeholder="Name"
@@ -337,7 +345,7 @@ const ProductDetails: React.FC = () => {
                     )}
                 </div>
                 {/* Pictures Section */}
-                <div className="mb-4 mx-1">
+                <div className="w-full border-2 border-black rounded-[8px] mt-4">
                     <Swiper
                         modules={[Navigation, Pagination]}
                         spaceBetween={10}
@@ -345,6 +353,7 @@ const ProductDetails: React.FC = () => {
                         navigation
                         pagination={{ clickable: true }}
                         className="w-full h-auto"
+                        style={{ '--swiper-navigation-color': "black", '--swiper-pagination-color': 'black' } as React.CSSProperties}
                     >
                         {/* Existing pictures from the database */}
                         {pictures.map((url, index) => (
@@ -355,14 +364,18 @@ const ProductDetails: React.FC = () => {
                                         alt={`Product ${index}`}
                                         className="w-full h-auto object-cover rounded-md"
                                     />
-                                    {editMode && (
-                                        <img
-                                            className="absolute bottom-4 right-4 text-white w-14 h-14 hover:cursor-pointer"
-                                            src="/assets/icons/fi-rr-trash-xmark.svg"
-                                            onClick={() => handleDeletePicture(product.pictures[index])}
-                                        />
-                                    )}
                                 </div>
+                                {editMode && (
+                                    <button
+                                        className="absolute bottom-4 right-4 text-white hover:cursor-pointer"
+                                        onClick={() => handleDeletePicture(product.pictures[index])}
+                                    >
+                                        <img
+                                            className="w-14 h-14"
+                                            src="/assets/icons/fi-rr-trash-xmark.svg"
+                                        />
+                                    </button>
+                                )}
                             </SwiperSlide>
                         ))}
 
@@ -375,38 +388,57 @@ const ProductDetails: React.FC = () => {
                                         alt={`Queued ${index}`}
                                         className="w-full h-auto object-cover rounded-md"
                                     />
-                                    <img
-                                        className="absolute bottom-4 right-4 text-white w-14 h-14 hover:cursor-pointer"
-                                        src="/assets/icons/fi-rr-trash-xmark.svg"
-                                        onClick={() => handleRemoveQueuedPicture(index)}
-                                    />
                                 </div>
+                                {editMode && (
+                                    <button
+                                        className="absolute bottom-4 right-4 text-white hover:cursor-pointer"
+                                        onClick={() => handleRemoveQueuedPicture(index)}
+                                    >
+                                        <img
+                                            className="w-14 h-14"
+                                            src="/assets/icons/fi-rr-trash-xmark.svg"
+                                        />
+                                    </button>
+                                )}
                             </SwiperSlide>
                         ))}
                     </Swiper>
-                    {editMode && (
-                        <>
-                            <div className="grid grid-cols-1 gap-4 mt-4">
-                                <input
-                                    type="file"
-                                    multiple
-                                    className="mt-2 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-gray-500 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-700 focus:outline-none disabled:pointer-events-none disabled:opacity-60"
-                                    onChange={handleFileChange}
-                                />
-                                <button
-                                    className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2 hover:bg-blue-600"
-                                    onClick={handleCapture}
-                                >
-                                    Open Camera
-                                </button>
-                            </div>
-                        </>
-                    )}
                 </div>
-            </div>
-             {/* Map */}
-             {editMode ? (
-                    <div className="w-[80%] border-2 border-black rounded-[8px]">
+                {/* Picture inputs */}
+                {editMode && (
+                    <div className="flex flex-row gap-4 mt-2">
+                        <div
+                            className="w-full flex justify-center text-sm bg-white border-2 border-black text-black px-4 py-2 rounded-[8px] hover:cursor-pointer"
+                            onClick={() => document.getElementById('file-upload')?.click()}
+                        >
+                            <img 
+                                src="/assets/icons/fi-rr-file.svg"
+                                alt="Upload"
+                                className="w-6 h-6"
+                            />
+                        </div>
+                        <input
+                            id="file-upload"
+                            type="file"
+                            multiple
+                            className="hidden"
+                            onChange={handleFileChange}
+                        />
+                        <div
+                            className="w-full  flex justify-center bg-white border-2 border-black text-black px-4 py-2 rounded-[8px] hover:cursor-pointer"
+                            onClick={handleCapture}
+                        >
+                            <img 
+                                src="/assets/icons/fi-rr-camera.svg"
+                                alt="Capture"
+                                className="w-6 h-6"
+                            />
+                        </div>
+                    </div>
+                )}
+                {/* Map */}
+                {editMode ? (
+                    <div className="w-full p-1 border-2 border-black rounded-[8px] mt-4">
                             <MapContainer
                                 style={{ height: '300px', width: '100%' }}
                             >
@@ -418,7 +450,7 @@ const ProductDetails: React.FC = () => {
                             </MapContainer>
                     </div>
                 ) : (
-                    <div className="w-[80%] border-2 border-black rounded-[8px]">
+                    <div className="w-full p-1 border-2 border-black rounded-[8px] mt-4">
                             <MapContainer
                                 style={{ height: '300px', width: '100%' }}
                             >
@@ -438,20 +470,30 @@ const ProductDetails: React.FC = () => {
                 )}
             {/* Save or Edit/Delete Buttons */}
             {editMode ? (
-                <button
-                    className="w-full max-w-sm bg-black text-white py-3 rounded-[8px] mt-6 text-sm font-medium"
-                    onClick={handleSave}
-                >
-                    Save
-                </button>
+                <>
+                    <button
+                        className="w-full max-w-sm bg-black text-white py-3 rounded-[8px] mt-4 text-sm font-medium"
+                        onClick={handleSave}
+                    >
+                        Save
+                    </button>
+                    <button
+                        className="w-full max-w-sm bg-white text-black border-2 border-black py-3 rounded-[8px] mt-3 text-sm font-medium"
+                        onClick = {() => setEditMode(false)}
+                    >
+                        Cancel
+                    </button>
+                </>
             ) : (
                 <button
-                        className="w-full max-w-sm bg-black text-white py-3 rounded-[8px] mt-6 text-sm font-medium"
+                        className="w-full max-w-sm bg-black text-white py-3 rounded-[8px] mt-4 text-sm font-medium"
                         onClick={() => setEditMode(true)}
                     >
                         Edit
                 </button>
+                
             )}
+            </div>
         </div>
     );
 };

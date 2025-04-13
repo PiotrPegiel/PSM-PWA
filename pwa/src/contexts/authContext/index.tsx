@@ -46,11 +46,11 @@ export function AuthProvider({ children }: React.PropsWithChildren<{}>) {
       const userRolesRef = doc(firestore, "userRoles", user.uid);
       const userRolesDoc = await getDoc(userRolesRef);
 
-      let role = "user";
+      let role = "User";
       if (userRolesDoc.exists()) {
         role = userRolesDoc.data()?.role || "User"; // Retrieve role from Firestore
       } else {
-        await setDoc(userRolesRef, { userId: user.uid, role });
+        await setDoc(userRolesRef, { userId: user.uid, role , email: user.email });
       }
 
       setCurrentUser({

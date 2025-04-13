@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { EmailAuthCredential, EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword, User } from "firebase/auth";
-import { useAuth } from "../../contexts/authContext";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { useFirebase } from "../../contexts/FirebaseContext";
 import Header from "../header";
 
@@ -58,9 +57,9 @@ const UserProfile: React.FC = () => {
               />
             </svg>
           </div>
-          
-          <p className="text-gray-600 mb-2">{currentUser?.email}</p>
-          <p className="text-gray-600">Change Password</p>
+          {!editMode && (
+            <p className="text-gray-600 mt-4">{currentUser?.email}</p>
+          )}
         </div>
         <form
           className="mt-6 space-y-4"
@@ -68,25 +67,25 @@ const UserProfile: React.FC = () => {
             e.preventDefault();
           }}
         >
-          <div>
+          {editMode && (
+          <div className="space-y-4">
+            <div>
             <input
               type="email"
               placeholder="Current mail@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none"
               disabled={!editMode} 
             />
           </div>
-          {editMode ? (
-          <div className="space-y-4">
             <div>
               <input
                 type="password"
                 placeholder="Old Password"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none"
               />
             </div>
             <div>
@@ -95,25 +94,17 @@ const UserProfile: React.FC = () => {
                 placeholder="New Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-[8px] focus:outline-none"
               />
             </div>
-          </div>
-          ): (
-        <div>
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={!editMode}
-            />
           </div>
           )}
           
           {editMode ? (
+            <>
               <button
               type="submit"
-              className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+              className="w-full bg-black text-white py-2 rounded-[8px]"
               onClick={() => {
                 setEditMode(false);
                 handleUpdate();
@@ -121,10 +112,19 @@ const UserProfile: React.FC = () => {
             >
               Update
             </button>
+            <button
+              className="w-full bg-white text-black border-2 border-black py-2 rounded-[8px]"
+              onClick={() => {
+                setEditMode(false);
+              }}
+            >
+              Cancel
+            </button>
+            </>
           ):(
             <button
               onClick={() => setEditMode(true)}
-              className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+              className="w-full bg-black text-white py-2 rounded-[8px]"
             >
               Edit
             </button>

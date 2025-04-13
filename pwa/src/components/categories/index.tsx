@@ -128,30 +128,27 @@ const Categories: React.FC = () => {
             {showModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
-                        <div className="p-4 border-b">
-                            <h5 className="text-lg font-bold">Add New Category</h5>
-                        </div>
-                        <div className="p-4">
+                        <div className="px-4 pt-4">
                             <input
                                 type="text"
-                                className="w-full p-2 border border-gray-300 rounded-lg"
+                                className="w-full p-2 border-2 border-black rounded-[8px]"
                                 placeholder="Category Name"
                                 value={newCategoryName}
                                 onChange={(e) => setNewCategoryName(e.target.value)}
                             />
                         </div>
-                        <div className="flex justify-end p-4 border-t space-x-2">
+                        <div className="flex flex-row justify-center align-center px-4 pb-4 mt-3 space-x-2">
                             <button
-                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+                                className="w-full px-4 py-2 text-white bg-black rounded-[8px]"
+                                onClick={handleAddCategory}
+                            >
+                                Save
+                            </button>
+                            <button
+                                className="w-full px-4 py-2 text-gray-700 border-2 border-black rounded-[8px] font-medium"
                                 onClick={() => setShowModal(false)}
                             >
                                 Close
-                            </button>
-                            <button
-                                className="px-4 py-2 text-white bg-black rounded-[8px]"
-                                onClick={handleAddCategory}
-                            >
-                                Add
                             </button>
                         </div>
                     </div>
