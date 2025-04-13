@@ -277,8 +277,11 @@ const ReservationNewEdit: React.FC = () => {
 
     const handleDateTimeChange = (field: string, type: 'date' | 'time', value: string) => {
         const [date, time] = (reservation[field] || '').split('T');
-        const newDateTime = type === 'date' ? `${value}T${time || ''}` : `${date || ''}T${value}`;
-        setReservation({ ...reservation, [field]: newDateTime || '' }); // Ensure empty string if no value
+        const newDateTime =
+            type === 'date'
+                ? `${value}T${time || '00:00'}` // Default to '00:00' if time is missing
+                : `${date || new Date().toISOString().split('T')[0]}T${value}`; // Default to today's date if date is missing
+        setReservation({ ...reservation, [field]: newDateTime });
     };
 
     // Helper function to format a Date object to match the localized format
