@@ -312,7 +312,7 @@ const ReservationNewEdit: React.FC = () => {
     }
 
     return (
-        <div className="flex w-full flex-col items-center min-h-screen pt-12 ">
+        <div className="flex w-full flex-col items-center min-h-screen pt-12 pb-6">
             {<Header />}
             <div className="relative w-full max-w-md mb-6">
                 <button
