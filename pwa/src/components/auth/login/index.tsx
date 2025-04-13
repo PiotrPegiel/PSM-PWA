@@ -3,32 +3,67 @@ import { Navigate, Link } from 'react-router-dom';
 import { doSignInWithEmailAndPassword, doSignInWithGoogle } from '../../../firebase/auth';
 import { useAuth } from '../../../contexts/authContext';
 
-const Login = () => {
-    const { userLoggedIn } = useAuth() as { userLoggedIn: boolean }
+const SnackBar: React.FC<{ message: string; type: "success" | "error"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
 
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [isSigningIn, setIsSigningIn] = useState(false)
-    const [errorMessage, setErrorMessage] = useState('')
+    React.useEffect(() => {
+        setVisible(true);
+        const timer = setTimeout(() => {
+            setVisible(false);
+            setTimeout(onClose, 300);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    return (
+        <div
+            className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+                visible ? "translate-y-0" : "translate-y-full"
+            } ${type === "success" ? "bg-green-500" : "bg-red-500"}`}
+        >
+            <span>{message}</span>
+            <button className="ml-4 text-white" onClick={onClose}>
+                <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+            </button>
+        </div>
+    );
+};
+
+const Login = () => {
+    const { userLoggedIn } = useAuth() as { userLoggedIn: boolean };
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isSigningIn, setIsSigningIn] = useState(false);
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
     const onSubmit = async (e: { preventDefault: () => void }) => {
-        e.preventDefault()
-        if(!isSigningIn) {
-            setIsSigningIn(true)
-            await doSignInWithEmailAndPassword(email, password)
-            // doSendEmailVerification()
-        }
-    }
-
-    const onGoogleSignIn = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.preventDefault()
+        e.preventDefault();
         if (!isSigningIn) {
-            setIsSigningIn(true)
-            doSignInWithGoogle().catch(err => {
-                setIsSigningIn(false)
-            })
+            setIsSigningIn(true);
+            try {
+                await doSignInWithEmailAndPassword(email, password);
+            } catch (error: any) {
+                setSnackBar({ message: "Failed to sign in. Please check your credentials.", type: "error" });
+            } finally {
+                setIsSigningIn(false);
+            }
         }
-    }
+    };
+
+    const onGoogleSignIn = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.preventDefault();
+        if (!isSigningIn) {
+            setIsSigningIn(true);
+            try {
+                await doSignInWithGoogle();
+            } catch (error: any) {
+                setSnackBar({ message: "Failed to sign in with Google.", type: "error" });
+            } finally {
+                setIsSigningIn(false);
+            }
+        }
+    };
 
     return (
         <div>
@@ -36,9 +71,7 @@ const Login = () => {
 
             <main className="w-full h-screen flex items-center justify-center bg-white" style={{ fontFamily: 'Inter, sans-serif' }}>
                 <div className="w-full max-w-md p-6">
-                    <h1 className="text-[24px] font-semibold text-center mb-8">
-                        Rezervix
-                    </h1>
+                    <h1 className="text-[24px] font-semibold text-center mb-8">Rezervix</h1>
                     <h2 className="text-lg font-semibold text-center mb-4">Log in</h2>
                     <form onSubmit={onSubmit} className="space-y-4">
                         <div>
@@ -61,14 +94,11 @@ const Login = () => {
                                 required
                             />
                         </div>
-                        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                         <button
                             type="submit"
                             disabled={isSigningIn}
                             className={`w-full py-2 text-white font-medium rounded-[8px] ${
-                                isSigningIn
-                                    ? 'bg-gray-300 cursor-not-allowed'
-                                    : 'bg-black hover:bg-gray-800'
+                                isSigningIn ? 'bg-gray-300 cursor-not-allowed' : 'bg-black hover:bg-gray-800'
                             }`}
                         >
                             {isSigningIn ? 'Signing In...' : 'Sign In'}
@@ -88,7 +118,10 @@ const Login = () => {
                     <button
                         disabled={isSigningIn}
                         onClick={onGoogleSignIn}
-                        className={`w-full flex items-center justify-center gap-x-3 py-2.5 rounded-[8px] text-sm font-medium bg-[#EEEEEE] ${isSigningIn ? 'cursor-not-allowed' : 'hover:bg-gray-100 transition duration-300 active:bg-gray-100'}`}>
+                        className={`w-full flex items-center justify-center gap-x-3 py-2.5 rounded-[8px] text-sm font-medium bg-[#EEEEEE] ${
+                            isSigningIn ? 'cursor-not-allowed' : 'hover:bg-gray-100 transition duration-300 active:bg-gray-100'
+                        }`}
+                    >
                         <svg className="w-5 h-5" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_17_40)">
                                 <path d="M47.532 24.5528C47.532 22.9214 47.3997 21.2811 47.1175 19.6761H24.48V28.9181H37.4434C36.9055 31.8988 35.177 34.5356 32.6461 36.2111V42.2078H40.3801C44.9217 38.0278 47.532 31.8547 47.532 24.5528Z" fill="#4285F4" />
@@ -106,6 +139,13 @@ const Login = () => {
                     </button>
                 </div>
             </main>
+            {snackBar && (
+                <SnackBar
+                    message={snackBar.message}
+                    type={snackBar.type}
+                    onClose={() => setSnackBar(null)}
+                />
+            )}
         </div>
     );
 };
