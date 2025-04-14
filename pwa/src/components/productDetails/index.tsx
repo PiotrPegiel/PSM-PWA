@@ -7,6 +7,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import * as L from 'leaflet';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import imageCompression from 'browser-image-compression';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -148,43 +149,67 @@ const ProductDetails: React.FC = () => {
     }, [firestore, productId, storage]);
 
     const handleSave = async () => {
-        if (firestore) {
-            const productRef = productId
-                ? doc(firestore, 'products', productId)
-                : doc(firestore, 'products', `${Date.now()}`); // Generate a new ID for new products
+        setEditMode(false);
+        try {
+            if (firestore) {
+                const productRef = productId
+                    ? doc(firestore, 'products', productId)
+                    : doc(firestore, 'products', `${Date.now()}`); // Generate a new ID for new products
 
-            const uploadedPaths = await Promise.all(
-                newPictures.map(async (file) => {
-                    const storageRef = ref(storage, `products/${file.name}`);
-                    await uploadBytesResumable(storageRef, file);
-                    return `products/${file.name}`;
-                })
-            );
+                const uploadedPaths = await Promise.all(
+                    newPictures.map(async (file) => {
+                        const storageRef = ref(storage, `products/${file.name}`);
+                        await uploadBytesResumable(storageRef, file);
+                        return `products/${file.name}`;
+                    })
+                );
 
-            const location = latitude !== '' && longitude !== '' ? new GeoPoint(latitude, longitude) : null;
+                const location = latitude !== '' && longitude !== '' ? new GeoPoint(latitude, longitude) : null;
 
-            console.log('Location:', location);
-            console.log('lat:', latitude);
-            console.log('long:', longitude);
-            await setDoc(productRef, {
-                ...product,
-                location,
-                pictures: [...(product.pictures || []), ...uploadedPaths],
-                categoryId: doc(firestore, 'categories', categoryId || ''),
-            });
-            setSnackBar({ message: "Product saved successfully!", type: "success" });
+                await setDoc(productRef, {
+                    ...product,
+                    location,
+                    pictures: [...(product.pictures || []), ...uploadedPaths],
+                    categoryId: doc(firestore, 'categories', categoryId || ''),
+                });
+                setSnackBar({ message: "Product saved successfully!", type: "success" });
+            }
+        } catch (error) {
+            console.error('Error saving product:', error);
+            setSnackBar({ message: "Failed to save product.", type: "error" });
+        } finally {
+            setNewPictures([]);
             navigate(`/categories/${categoryId}`);
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files; // Extract files to a variable
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
         if (files) {
             const validFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
             if (validFiles.length !== files.length) {
                 setSnackBar({ message: "Only image files are allowed.", type: "error" });
             }
-            setNewPictures((prev) => [...prev, ...validFiles]);
+
+            const compressedFiles = await Promise.all(
+                validFiles.map(async (file) => {
+                    try {
+                        const options = {
+                            maxSizeMB: 1, // Maximum file size in MB
+                            maxWidthOrHeight: 1024, // Maximum width or height in pixels
+                            useWebWorker: true,
+                        };
+                        const compressedFile = await imageCompression(file, options);
+                        return compressedFile;
+                    } catch (error) {
+                        console.error("Error compressing file:", error);
+                        setSnackBar({ message: "Failed to compress image.", type: "error" });
+                        return file; // Fallback to original file if compression fails
+                    }
+                })
+            );
+
+            setNewPictures((prev) => [...prev, ...compressedFiles]);
             e.target.value = ''; // Clear the upload field
         }
     };
