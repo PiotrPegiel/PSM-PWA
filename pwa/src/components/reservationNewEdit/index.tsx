@@ -6,12 +6,40 @@ import { ref, getDownloadURL } from 'firebase/storage';
 import { useSwipeable } from 'react-swipeable';
 import Header from "../header";
 
+const SnackBar: React.FC<{ message: string; type: "success" | "error" | "warning"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      setVisible(true); // Trigger slide-in animation
+  
+      const timer = setTimeout(() => {
+        setVisible(false); // Trigger slide-out animation
+        setTimeout(onClose, 300); // Wait for animation to complete before closing
+      }, 3000); // Snack bar disappears after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [onClose]);
+  
+    return (
+      <div
+        className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        } ${type === "success" ? "bg-green-500" : type == "warning" ? "bg-orange-500" : "bg-red-500"}`}
+      >
+        <span>{message}</span>
+        <button className="ml-4 text-white" onClick={onClose}>
+          <img src="/assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+        </button>
+      </div>
+    );
+  };
+
 const ReservationNewEdit: React.FC = () => {
     const { firestore, storage, currentUser } = useFirebase() || {}; // Include currentUser from FirebaseContext
     const { reservationId } = useParams<{ reservationId: string }>();
     const location = useLocation(); 
     const navigate = useNavigate();
-
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" | "warning" } | null>(null); 
     const [reservation, setReservation] = useState<any>(location.state?.reservation || {}); // Initialize with state or empty object
     const [product, setProduct] = useState<{ [key: string]: any }>(
         location.state?.reservation?.productId
@@ -151,81 +179,82 @@ const ReservationNewEdit: React.FC = () => {
     const handleSave = async () => {
         try {
             if (!firestore || !currentUser) {
-                alert('Failed to save reservation. Please ensure you are logged in.');
+                setSnackBar({ message: "Failed to save reservation. Please ensure you are logged in.", type: "error" });
                 return;
             }
-
+    
             if (!reservation.productId) {
-                alert('Product ID is missing. Please select a valid product.');
+                setSnackBar({ message: "Product ID is missing. Please select a valid product.", type: "error" });
                 return;
             }
-
+    
             if (!reservation.from || !reservation.to) {
-                alert('Please set both "From" and "To" date and time.');
+                setSnackBar({ message: "Please set both 'From' and 'To' date and time.", type: "error" });
                 return;
             }
-
+    
             const fromParts = reservation.from.split('T');
             const toParts = reservation.to.split('T');
-
+    
             if (fromParts.length < 2 || toParts.length < 2 || !fromParts[0] || !fromParts[1] || !toParts[0] || !toParts[1]) {
-                alert('Both date and time must be set for "From" and "To".');
+                setSnackBar({ message: "Both date and time must be set for 'From' and 'To'.", type: "error" });
                 return;
             }
-
+    
             const fromDate = new Date(reservation.from);
             const toDate = new Date(reservation.to);
             const currentDate = new Date();
-
+    
             if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-                alert('Invalid date or time format. Please correct it.');
+                setSnackBar({ message: "Invalid date or time format. Please correct it.", type: "error" });
                 return;
             }
-
+    
             if (toDate <= fromDate) {
-                alert('"To" datetime must be later than "From" datetime.');
+                setSnackBar({ message: "Invalid date range. 'To' must be later than 'From'.", type: "error" });
                 return;
             }
-
+    
             if (toDate <= currentDate) {
-                alert('"To" datetime must be in the future.');
+                setSnackBar({ message: "Invalid date range. 'To' must be in the future.", type: "error" });
                 return;
             }
-
+    
             // Check for overlapping reservations
             const reservationsRef = collection(firestore, 'reservations');
             const q = query(
                 reservationsRef,
-                where('productId', '==', doc(firestore, 'products', reservation.productId)),
+                where('productId', '==', typeof reservation.productId === 'string' ? doc(firestore, 'products', reservation.productId) : reservation.productId),
                 where('to', '>', Timestamp.fromDate(fromDate)),
-                where('from', '<', Timestamp.fromDate(toDate))
+                where('from', '<', Timestamp.fromDate(toDate)),
+                ...(reservationId ? [where('__name__', '!=', reservationId)] : []) // Exclude the current reservation if editing
             );
-
+    
             const querySnapshot = await getDocs(q);
-
+    
             if (!querySnapshot.empty) {
-                alert('The selected product is already reserved for the chosen time period.');
+                setSnackBar({ message: "The selected product is already reserved for the chosen time period.", type: "error" });
                 return;
             }
-
+    
             const reservationRef = reservationId
                 ? doc(firestore, 'reservations', reservationId)
                 : doc(firestore, 'reservations', `${Date.now()}`); // Generate a new ID for new reservations
-
+    
             const formattedReservation = {
                 ...reservation,
                 userId: currentUser.uid, // Ensure userId is set from currentUser
-                productId: doc(firestore, 'products', reservation.productId), // Reconstruct Firestore document reference
+                productId: typeof reservation.productId === 'string' ? doc(firestore, 'products', reservation.productId) : reservation.productId, // Ensure valid DocumentReference
                 from: reservation.from ? Timestamp.fromDate(new Date(reservation.from)) : null, // Convert to Firestore Timestamp
                 to: reservation.to ? Timestamp.fromDate(new Date(reservation.to)) : null, // Convert to Firestore Timestamp
             };
-
+    
             await setDoc(reservationRef, formattedReservation);
-            alert('Reservation saved successfully!');
+            setSnackBar({ message: "Reservation saved successfully!", type: "success" });
             navigate('/home');
         } catch (error) {
             console.error('Error saving reservation:', error);
-            alert('An error occurred while saving the reservation. Please try again.');
+            setSnackBar({ message: "Failed to save reservation. Please try again.", type: "error" });
         }
     };
 
@@ -233,7 +262,7 @@ const ReservationNewEdit: React.FC = () => {
         if (firestore && reservationId) {
             const reservationRef = doc(firestore, 'reservations', reservationId);
             await deleteDoc(reservationRef);
-            alert('Reservation deleted successfully!');
+            setSnackBar({ message: "Reservation deleted successfully!", type: "success" });
             navigate('/home');
         }
     };
@@ -248,8 +277,11 @@ const ReservationNewEdit: React.FC = () => {
 
     const handleDateTimeChange = (field: string, type: 'date' | 'time', value: string) => {
         const [date, time] = (reservation[field] || '').split('T');
-        const newDateTime = type === 'date' ? `${value}T${time || ''}` : `${date || ''}T${value}`;
-        setReservation({ ...reservation, [field]: newDateTime || '' }); // Ensure empty string if no value
+        const newDateTime =
+            type === 'date'
+                ? `${value}T${time || '00:00'}` // Default to '00:00' if time is missing
+                : `${date || new Date().toISOString().split('T')[0]}T${value}`; // Default to today's date if date is missing
+        setReservation({ ...reservation, [field]: newDateTime });
     };
 
     // Helper function to format a Date object to match the localized format
@@ -280,7 +312,7 @@ const ReservationNewEdit: React.FC = () => {
     }
 
     return (
-        <div className="flex w-full flex-col items-center min-h-screen pt-12 ">
+        <div className="flex w-full flex-col items-center min-h-screen pt-12 pb-6">
             {<Header />}
             <div className="relative w-full max-w-md mb-6">
                 <button
@@ -341,8 +373,7 @@ const ReservationNewEdit: React.FC = () => {
                             <input
                                 type="time"
                                 className="w-1/2 border border-gray-300 rounded-[8px] p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                // make the date take into account timezone
-                                value={reservation.from?.split('T')[1]?.slice(0, 5) || ''}
+                                value={reservation.from ? new Date(reservation.from).toLocaleTimeString('en-US', { hour12: false }).slice(0, 5) : ''} // Convert to local time
                                 onChange={(e) => handleDateTimeChange('from', 'time', e.target.value)}
                             />
                         </div>
@@ -364,7 +395,7 @@ const ReservationNewEdit: React.FC = () => {
                             <input
                                 type="time"
                                 className="w-1/2 border border-gray-300 rounded-[8px] p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value={reservation.to?.split('T')[1]?.slice(0, 5) || ''} // Extract time part
+                                value={reservation.to ? new Date(reservation.to).toLocaleTimeString('en-US', { hour12: false }).slice(0, 5) : ''} // Convert to local time
                                 onChange={(e) => handleDateTimeChange('to', 'time', e.target.value)}
                             />
                         </div>
@@ -373,12 +404,22 @@ const ReservationNewEdit: React.FC = () => {
                     )}
                 </div>
                 {editMode ? (
-                    <button
-                        className="w-full bg-stone-950 text-white py-2 rounded-[8px] mt-4 hover:bg-gray-900"
-                        onClick={handleSave}
-                    >
-                        Save
-                    </button>
+                    <>
+                        <button
+                            className="w-full bg-stone-950 text-white py-2 rounded-[8px] mt-4"
+                            onClick={handleSave}
+                        >
+                            Save
+                        </button>
+                        {reservationId && (
+                            <button
+                                className="w-full bg-white border-2 border-black text-black py-2 rounded-[8px] mt-3"
+                                onClick={() => setEditMode(false)}
+                            >
+                                Cancel
+                            </button>
+                        )}
+                    </>
                 ) : (
                     <div className="flex flex-column mt- gap-3">
                         <button
@@ -406,6 +447,13 @@ const ReservationNewEdit: React.FC = () => {
                     </div>
                 )}
             </div>
+            {snackBar && (
+                <SnackBar
+                    message={snackBar.message}
+                    type={snackBar.type}
+                    onClose={() => setSnackBar(null)}
+                />
+            )}
         </div>
     );
 };

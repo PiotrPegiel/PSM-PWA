@@ -3,29 +3,66 @@ import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../contexts/authContext'
 import { doCreateUserWithEmailAndPassword } from '../../../firebase/auth'
 
+const SnackBar: React.FC<{ message: string; type: "success" | "error"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+
+    React.useEffect(() => {
+        setVisible(true);
+        const timer = setTimeout(() => {
+            setVisible(false);
+            setTimeout(onClose, 300);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    return (
+        <div
+            className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+                visible ? "translate-y-0" : "translate-y-full"
+            } ${type === "success" ? "bg-green-500" : "bg-red-500"}`}
+        >
+            <span>{message}</span>
+            <button className="ml-4 text-white" onClick={onClose}>
+                <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+            </button>
+        </div>
+    );
+};
+
 const Register = () => {
+    const navigate = useNavigate();
 
-    const navigate = useNavigate()
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setconfirmPassword] = useState('');
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setconfirmPassword] = useState('')
-    const [isRegistering, setIsRegistering] = useState(false)
-    const [errorMessage, setErrorMessage] = useState('')
-
-    const { userLoggedIn } = useAuth()
+    const { userLoggedIn } = useAuth();
 
     const onSubmit = async (e: { preventDefault: () => void }) => {
-        e.preventDefault()
-        if(!isRegistering) {
-            setIsRegistering(true)
-            await doCreateUserWithEmailAndPassword(email, password)
+        e.preventDefault();
+        if (password !== confirmPassword) {
+            setSnackBar({ message: "Passwords do not match.", type: "error" });
+            return;
         }
-    }
+        if (!isRegistering) {
+            setIsRegistering(true);
+            try {
+                await doCreateUserWithEmailAndPassword(email, password);
+                setSnackBar({ message: "Registration successful!", type: "success" });
+                navigate('/home');
+            } catch (error: any) {
+                setSnackBar({ message: error.message || "Registration failed.", type: "error" });
+            } finally {
+                setIsRegistering(false);
+            }
+        }
+    };
 
     return (
         <>
-            {userLoggedIn && (<Navigate to={'/home'} replace={true} />)}
+            {userLoggedIn && <Navigate to={'/home'} replace={true} />}
 
             <main className="w-full h-screen flex items-center justify-center bg-white">
                 <div className="w-full max-w-md p-6">
@@ -62,14 +99,11 @@ const Register = () => {
                                 required
                             />
                         </div>
-                        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                         <button
                             type="submit"
                             disabled={isRegistering}
                             className={`w-full py-2 text-white font-medium rounded-[8px] ${
-                                isRegistering
-                                    ? 'bg-gray-300 cursor-not-allowed'
-                                    : 'bg-black hover:bg-gray-800'
+                                isRegistering ? 'bg-gray-300 cursor-not-allowed' : 'bg-black hover:bg-gray-800'
                             }`}
                         >
                             {isRegistering ? 'Signing Up...' : 'Sign Up'}
@@ -83,8 +117,15 @@ const Register = () => {
                     </p>
                 </div>
             </main>
+            {snackBar && (
+                <SnackBar
+                    message={snackBar.message}
+                    type={snackBar.type}
+                    onClose={() => setSnackBar(null)}
+                />
+            )}
         </>
-    )
-}
+    );
+};
 
-export default Register
+export default Register;
