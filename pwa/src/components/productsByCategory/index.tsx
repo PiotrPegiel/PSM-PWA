@@ -170,6 +170,7 @@ const ProductsByCategory: React.FC = () => {
                             />
                         </div>
                 )}
+                    </div>
             </div>
             <div className="space-y-4 mt-5">
                 {products.map(product => (
