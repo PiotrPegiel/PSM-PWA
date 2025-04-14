@@ -26,7 +26,7 @@ const SnackBar: React.FC<{ message: string; type: "success" | "error"; onClose: 
       >
         <span>{message}</span>
         <button className="ml-4 text-white" onClick={onClose}>
-          <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+          <img src="/assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
         </button>
       </div>
     );
