@@ -179,7 +179,6 @@ const ProductDetails: React.FC = () => {
             setSnackBar({ message: "Failed to save product.", type: "error" });
         } finally {
             setNewPictures([]);
-            navigate(`/categories/${categoryId}`);
         }
     };
 
@@ -371,7 +370,7 @@ const ProductDetails: React.FC = () => {
             <div className='w-full max-w-sm flex justify-between items-center space-x-4 mb-12'>
                 <button
                     className=""
-                    onClick={() => navigate(-1)} 
+                    onClick={() => navigate(`/categories/${categoryId}`)} 
                 >
                     <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
                 </button>
