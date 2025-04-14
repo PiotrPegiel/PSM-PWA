@@ -9,9 +9,7 @@ import ReservationNewEdit from './components/reservationNewEdit';
 import NewReservation from "./components/newReservation";
 import History from "./components/history";
 
-import Header from "./components/header";
 import Home from "./components/home";
-import Upload from "./components/storage";
 import Profile from "./components/profile";
 
 import { useAuth } from "./contexts/authContext";
@@ -34,7 +32,6 @@ function App() {
     { path: "/register", element: <Register /> },
     { path: "/home", element: <ProtectedRoute element={<Home />} /> },
     { path: "/admin", element: <ProtectedRoute element={<Admin />} /> },
-    { path: "/upload", element: <ProtectedRoute element={<Upload />} /> },
     { path: "/profile", element: <ProtectedRoute element={<Profile />} /> },
     { path: "/categories", element: <ProtectedRoute element={<Categories />} roles={["Admin", "SuperUser"]} /> },
     { path: '/categories/:categoryId', element: <ProtectedRoute element={<ProductsByCategory />} roles={["Admin", "SuperUser"]} /> },
