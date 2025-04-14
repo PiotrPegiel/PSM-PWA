@@ -4,6 +4,34 @@ import { collection, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } 
 import { useParams, useNavigate } from 'react-router-dom';
 import { ref, deleteObject } from 'firebase/storage';
 
+const SnackBar: React.FC<{ message: string; type: "success" | "error"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      setVisible(true); // Trigger slide-in animation
+  
+      const timer = setTimeout(() => {
+        setVisible(false); // Trigger slide-out animation
+        setTimeout(onClose, 300); // Wait for animation to complete before closing
+      }, 3000); // Snack bar disappears after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [onClose]);
+  
+    return (
+      <div
+        className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        } ${type === "success" ? "bg-green-500" : "bg-red-500"}`}
+      >
+        <span>{message}</span>
+        <button className="ml-4 text-white" onClick={onClose}>
+          <img src="assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+        </button>
+      </div>
+    );
+  };
+
 const ProductsByCategory: React.FC = () => {
     const { firestore, storage } = useFirebase() || {};
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -13,6 +41,8 @@ const ProductsByCategory: React.FC = () => {
     const [newCategoryName, setNewCategoryName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [editMode, setEditMode] = useState<boolean>(false);
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" } | null>(null);    
+    
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -53,7 +83,7 @@ const ProductsByCategory: React.FC = () => {
                 await updateDoc(categoryRef, { name: newCategoryName });
                 setCategoryName(newCategoryName);
                 setEditMode(false);
-                alert('Category name updated successfully!');
+                setSnackBar({ message: "Category name updated successfully!", type: "success" });
             } catch (error) {
                 console.error('Error updating category name:', error);
             }
@@ -81,10 +111,10 @@ const ProductsByCategory: React.FC = () => {
                 await deleteDoc(productRef);
 
                 setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
-                alert('Product and associated pictures deleted successfully!');
+                setSnackBar({ message: "Product and associated pictures deleted successfully!", type: "success" });
             } catch (error) {
                 console.error('Error deleting product or pictures:', error);
-                alert('Failed to delete product or associated pictures.');
+                setSnackBar({ message: "Failed to delete product or associated pictures.", type: "error" });
             }
         }
     };
@@ -94,75 +124,90 @@ const ProductsByCategory: React.FC = () => {
     }
 
     return (
-
-    <div className="container w-full max-w-md pt-8 px-2">
-        <div className="flex flex-grow w-full max-w-md mb-2 items-center">
-            {editMode ? (
-                <div className="w-full space-y-2">
-                    <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded px-2 py-1"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                    />
-                    <div className="flex space-x-2">
-                        <button
-                            className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                            onClick={handleSaveCategoryName}
-                        >
-                            Save
-                        </button>
-                        <button
-                            className="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                            onClick={handleDeleteCategory}
-                        >
-                            Delete
-                        </button>
+        <div className="container w-full max-w-md pt-8 px-2">
+            <div className="w-full flex justify-center items-center space-x-4 mb-6">
+                {editMode ? (
+                    <div className="w-full flex space-x-5 items-center">
+                            <button
+                                className=""
+                                onClick={() => navigate(-1)} 
+                            >
+                                <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                            </button>
+                        <input
+                            type="text"
+                            className="flex-grow border border-gray-300 rounded px-2 py-1"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                        />
+                        <div className="flex space-x-5">
+                            <img
+                                className="w-5 h-5 hover:cursor-pointer"
+                                src="/assets/icons/fi-rr-check.svg"
+                                onClick={handleSaveCategoryName}
+                            />
+                            <img
+                                className="w-5 h-5 hover:cursor-pointer"
+                                src="/assets/icons/fi-rr-cross.svg"
+                                onClick={() => setEditMode(false)}
+                            />
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <div className="w-full max-w-md flex justify-center items-center space-x-4">
-                    <div className="relative w-full max-w-md mb-6">
-                        <button
-                        className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
-                        onClick={() => navigate(-1)} 
-                        >
-                            <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
-                        </button>
-                        <h1 className="text-2xl font-bold text-center">{categoryName}</h1>
+                ) : (
+                        <div className="relative w-full max-w-md">
+                            <button
+                            className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
+                            onClick={() => navigate(-1)} 
+                            >
+                                <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
+                            </button>
+                            
+                            <h1 className="text-2xl font-bold text-center">{categoryName}</h1>
+                            <img
+                                src="/assets/icons/fi-rr-edit.svg"
+                                className="w-5 h-5 absolute right-0 top-1/2 transform -translate-y-1/2 hover:cursor-pointer"
+                                onClick={() => setEditMode(true)}
+                            />
+                        </div>
+                )}
+            </div>
+            <div className="space-y-4 mt-5">
+                {products.map(product => (
+                    <div
+                        key={product.id}
+                        className="flex justify-between items-center border-2 border-black rounded-[8px] p-2 hover:cursor-pointer"
+                        onClick={() => navigate(`/categories/${categoryId}/products/${product.id}`)}
+                    >
+                        <div className="w-5 h-5"></div>
+                        <p className='font-semibold'>{product.name}</p>
                         <img
-                            src="/assets/icons/fi-rr-edit.svg"
-                            className="w-5 h-5 cursor-pointer absolute right-0 top-1/2 transform -translate-y-1/2"
-                            onClick={() => setEditMode(true)}
+                            src="/assets/icons/fi-rr-trash-xmark.svg"
+                            alt="Delete"
+                            className="w-5 h-5 cursor-pointer"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteProduct(product.id, product.pictures || []);
+                            }}
                         />
                     </div>
-                    
-                </div>
+                ))}
+            </div>
+            <button
+                className="bg-black text-white w-full py-2 mt-4 rounded-[8px]"
+                onClick={() => navigate(`/categories/${categoryId}/products/new`)}
+            >
+                Add
+            </button>
+            {snackBar && (
+                <SnackBar
+                message={snackBar.message}
+                type={snackBar.type}
+                onClose={() => setSnackBar(null)}
+                />
             )}
         </div>
-        <div className="space-y-4">
-            {products.map(product => (
-                <div
-                    key={product.id}
-                    className="flex w-full max-w-md justify-center items-center border-2 border-black rounded-[8px] p-2 hover:cursor-pointer"
-                    onClick = {() => navigate(`/categories/${categoryId}/products/${product.id}`)}
-                >
-                        <p>{product.name}</p>
-                </div>
-            ))}
-        </div>
-        <button
-            className="bg-black text-white w-full py-2 mt-4 rounded-[8px] w-full max-w-md"
-            onClick={() => navigate(`/categories/${categoryId}/products/new`)}
-        >
-            Add
-        </button>
-
-    </div>
     );
 };
 
 export default ProductsByCategory;
-
-
 

@@ -1,19 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { useFirebase } from '../../contexts/FirebaseContext';
-
-
-import { Link, useNavigate } from 'react-router-dom';
-
-
+import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { ref, deleteObject } from 'firebase/storage';
 
+const SnackBar: React.FC<{ message: string; type: "success" | "error"; onClose: () => void }> = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      setVisible(true); // Trigger slide-in animation
+  
+      const timer = setTimeout(() => {
+        setVisible(false); // Trigger slide-out animation
+        setTimeout(onClose, 300); // Wait for animation to complete before closing
+      }, 3000); // Snack bar disappears after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }, [onClose]);
+  
+    return (
+      <div
+        className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded text-white flex justify-between items-center transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        } ${type === "success" ? "bg-green-500" : "bg-red-500"}`}
+      >
+        <span>{message}</span>
+        <button className="ml-4 text-white" onClick={onClose}>
+          <img src="/assets/icons/fi-rr-cross.svg" alt="Close" className="w-6 h-6 filter invert" />
+        </button>
+      </div>
+    );
+  };
 
 const Categories: React.FC = () => {
-    const { firestore } = useFirebase() || {};
+    const { firestore, storage } = useFirebase() || {};
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [showModal, setShowModal] = useState<boolean>(false);
     const [newCategoryName, setNewCategoryName] = useState<string>('');
+    const [snackBar, setSnackBar] = useState<{ message: string; type: "success" | "error" } | null>(null);    
+    
 
     const navigate = useNavigate(); 
 
@@ -46,7 +72,7 @@ const Categories: React.FC = () => {
                 await addDoc(categoriesRef, { name: newCategoryName });
                 setNewCategoryName('');
                 setShowModal(false);
-                alert('Category added successfully!');
+                setSnackBar({ message: "Category added successfully!", type: "success" });
                 fetchCategories(); // Refresh the category list
             } catch (error) {
                 console.error('Error adding category:', error);
@@ -64,17 +90,35 @@ const Categories: React.FC = () => {
                 const productsRef = collection(firestore, 'products');
                 const q = query(productsRef, where('categoryId', '==', doc(firestore, 'categories', categoryId)));
                 const querySnapshot = await getDocs(q);
-                const deletePromises = querySnapshot.docs.map(productDoc => deleteDoc(doc(firestore, 'products', productDoc.id)));
+
+                const deletePromises = querySnapshot.docs.map(async (productDoc) => {
+                    const productData = productDoc.data();
+
+                    // Delete associated pictures from Firebase Storage
+                    if (productData.pictures && productData.pictures.length > 0) {
+                        await Promise.all(
+                            productData.pictures.map(async (path: string) => {
+                                const storageRef = ref(storage, path);
+                                await deleteObject(storageRef);
+                            })
+                        );
+                    }
+
+                    // Delete the product document from Firestore
+                    return deleteDoc(doc(firestore, 'products', productDoc.id));
+                });
+
                 await Promise.all(deletePromises);
 
                 // Delete the category
                 const categoryRef = doc(firestore, 'categories', categoryId);
                 await deleteDoc(categoryRef);
 
-                alert('Category and its products deleted successfully!');
+                setSnackBar({ message: "Category and its products deleted successfully!", type: "success" });
                 fetchCategories(); // Refresh the category list
             } catch (error) {
                 console.error('Error deleting category or products:', error);
+                setSnackBar({ message: "Error deleting category or products", type: "error" });
             }
         }
     };
@@ -128,34 +172,38 @@ const Categories: React.FC = () => {
             {showModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
-                        <div className="p-4 border-b">
-                            <h5 className="text-lg font-bold">Add New Category</h5>
-                        </div>
-                        <div className="p-4">
+                        <div className="px-4 pt-4">
                             <input
                                 type="text"
-                                className="w-full p-2 border border-gray-300 rounded-lg"
+                                className="w-full p-2 border-2 border-black rounded-[8px]"
                                 placeholder="Category Name"
                                 value={newCategoryName}
                                 onChange={(e) => setNewCategoryName(e.target.value)}
                             />
                         </div>
-                        <div className="flex justify-end p-4 border-t space-x-2">
+                        <div className="flex flex-row justify-center align-center px-4 pb-4 mt-3 space-x-2">
                             <button
-                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100"
+                                className="w-full px-4 py-2 text-white bg-black rounded-[8px]"
+                                onClick={handleAddCategory}
+                            >
+                                Save
+                            </button>
+                            <button
+                                className="w-full px-4 py-2 text-gray-700 border-2 border-black rounded-[8px] font-medium"
                                 onClick={() => setShowModal(false)}
                             >
                                 Close
                             </button>
-                            <button
-                                className="px-4 py-2 text-white bg-black rounded-[8px]"
-                                onClick={handleAddCategory}
-                            >
-                                Add
-                            </button>
                         </div>
                     </div>
                 </div>
+            )}
+            {snackBar && (
+                <SnackBar
+                message={snackBar.message}
+                type={snackBar.type}
+                onClose={() => setSnackBar(null)}
+                />
             )}
         </div>
     );
