@@ -95,7 +95,7 @@ PSM-PWA/
 
 Ensure your Firebase Firestore and Storage rules are configured for security. Example rules:
 
-```json
+```
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -111,4 +111,5 @@ service cloud.firestore {
   }
 }
 ```
+
 
