@@ -297,8 +297,7 @@ const ReservationNewEdit: React.FC = () => {
     };
 
     const isPastReservation = reservation.to
-        ? new Date(reservation.to).getTime() <
-        new Date(formatDateForComparison(new Date())).getTime()
+        ? new Date(reservation.to.replace(/(\d{2})\.(\d{2})\.(\d{4}), (\d{2}:\d{2}:\d{2})/, '$3-$2-$1T$4')).getTime() < Date.now()
         : false;
 
     const swipeHandlers = useSwipeable({
@@ -317,7 +316,7 @@ const ReservationNewEdit: React.FC = () => {
             <div className="relative w-full max-w-md mb-6">
                 <button
                     className="absolute left-0 top-1/2 transform -translate-y-1/2 p-2"
-                    onClick={() => navigate(-1)} 
+                    onClick={() => reservationId ? navigate('/home') : navigate('/new-reservation')} 
                 >
                     <img src="/assets/icons/fi-rr-angle-left.svg" alt="Back" className="w-6 h-6" />
                 </button>
@@ -403,49 +402,47 @@ const ReservationNewEdit: React.FC = () => {
                         <p className="text-gray-800">{reservation.to || 'N/A'}</p>
                     )}
                 </div>
-                {editMode ? (
-                    <>
-                        <button
-                            className="w-full bg-stone-950 text-white py-2 rounded-[8px] mt-4"
-                            onClick={handleSave}
-                        >
-                            Save
-                        </button>
-                        {reservationId && (
+                {!isPastReservation && <>
+                    {editMode ? (
+                        <>
                             <button
-                                className="w-full bg-white border-2 border-black text-black py-2 rounded-[8px] mt-3"
-                                onClick={() => setEditMode(false)}
+                                className="w-full bg-stone-950 text-white py-2 rounded-[8px] mt-4"
+                                onClick={handleSave}
                             >
-                                Cancel
+                                Save
                             </button>
-                        )}
-                    </>
-                ) : (
-                    <div className="flex flex-column mt- gap-3">
+                            {reservationId && (
+                                <button
+                                    className="w-full bg-white border-2 border-black text-black py-2 rounded-[8px] mt-3"
+                                    onClick={() => setEditMode(false)}
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                        </>
+                    ) : (
+                        <div className="flex flex-column mt- gap-3">
+                            <button
+                            className="flex-1 bg-white border-2 border-black text-black py-2 rounded-[8px]"
+                            onClick={() => navigate(`/reservations/${reservationId}/map`)}
+                        >
+                            View On Map
+                        </button>
                         <button
-                        className="flex-1 bg-white border-2 border-black text-black py-2 rounded-[8px]"
-                        onClick={() => navigate(`/reservations/${reservationId}/map`)}
-                    >
-                        View On Map
-                    </button>
-                        {!isPastReservation && (
-                            <>
-                                <button
-                                    className="flex-1 bg-white border-2 border-black text-black py-2 rounded-[8px]"
-                                    onClick={() => setEditMode(true)}
-                                >
-                                    Edit Reservation
-                                </button>
-                                <button
-                                    className="flex-1 bg-black text-white py-2 rounded-[8px]"
-                                    onClick={handleDelete}
-                                >
-                                    Cancel Reservation
-                                </button>
-                            </>
-                        )}
-                    </div>
-                )}
+                            className="flex-1 bg-white border-2 border-black text-black py-2 rounded-[8px]"
+                            onClick={() => setEditMode(true)}
+                        >
+                            Edit Reservation
+                        </button>
+                        <button
+                            className="flex-1 bg-black text-white py-2 rounded-[8px]"
+                            onClick={handleDelete}
+                        >
+                            Cancel Reservation
+                        </button>
+                        </div>
+                    )}
+                </>}
             </div>
             {snackBar && (
                 <SnackBar

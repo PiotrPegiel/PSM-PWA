@@ -9,6 +9,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "browser-image-compression": "^2.0.2",
     "firebase": "^11.6.0",
     "leaflet": "^1.9.4",
     "leaflet-routing-machine": "^3.2.12",
