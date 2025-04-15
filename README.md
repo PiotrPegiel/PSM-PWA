@@ -38,8 +38,6 @@ PSM-PWA/
 │   │   ├── App.tsx            # Main application entry point
 │   │   ├── index.tsx          # React DOM rendering
 │   └── tailwind.config.js     # TailwindCSS configuration
-├── .gitignore                 # Git ignore rules
-├── README.md                  # Project documentation
 └── package.json               # Project dependencies and scripts
 ```
 
@@ -90,26 +88,3 @@ PSM-PWA/
   - Assign roles to users.
 
 ---
-
-## 📜 Firebase Rules
-
-Ensure your Firebase Firestore and Storage rules are configured for security. Example rules:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /categories/{categoryId} {
-      allow read, write: if request.auth != null;
-    }
-    match /products/{productId} {
-      allow read, write: if request.auth != null;
-    }
-    match /reservations/{reservationId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-  }
-}
-```
-
-
